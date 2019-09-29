@@ -2,23 +2,11 @@
 @import "spinner.css";
 @import "small-spinner.css";
 
-//Colors theme
-$dark-color: #00A388;
-$bg-color: #ffff9d87;
-$bg-aside: #79BD8F;
-$bg-news: rgba(255, 181, 51, 0.51);
-$bg-elements-color: #FFFF9D;
-
-
 .noNews {
     margin: auto;
     font-size: 24px;
-    color: $dark-color;
+    color: #00A388;
 }
-
-//html {
-//    overflow-y: scroll;
-//}
 
 // Header start
 header {
@@ -233,7 +221,7 @@ main {
         text-align: center;
     }
 
-    .card {
+    .card.news-item {
         border-radius: $card-border-radius;
         border: none;
         transition: .3s;
@@ -300,8 +288,6 @@ main {
             }
         }
 
-
-        // card header
         .card-header {
             display: flex;
             flex-direction: column;
@@ -363,7 +349,7 @@ main {
         .btn-primary + .btn-primary {
             margin-left: 5px;
         }
-        
+
         a {
             cursor: pointer;
         }
@@ -394,6 +380,16 @@ main {
             cursor: pointer;
             transition: .3s;
         }
+    }
+}
+
+.show-description {
+    .card-header {
+        transform: translate(0, -100%);
+    }
+
+    .card-body {
+        transform: translate(0, 100%);
     }
 }
 // Main end
@@ -433,25 +429,102 @@ main {
 }
 // Alert end
 
-.show-description {
-    .card-header {
-        transform: translate(0, -100%);
+// Sign in and register form start
+
+.nav.nav-tabs,
+.tab-content {
+    max-width: 450px;
+    margin: auto;
+}
+
+.nav.nav-tabs {
+    $border-radius: 10px;
+    $bg-color: #b58900d1;
+    justify-content: space-between;
+    border-radius: $border-radius $border-radius 0 0;
+    border: none;
+    background-color: #b58900d1;
+    border-bottom: 1px solid #c1c1c1;
+
+    .nav-item {
+        flex-grow: 1;
+        text-align: center;
+        margin-bottom: 0;
+
+        a {
+            color: #c1c1c1;
+            transition: .2s;
+        }
     }
 
-    .card-body {
-        transform: translate(0, 100%);
+    .nav-item:first-child .nav-link {
+        border-radius: $border-radius 0 0 0;
+    }
+
+    .nav-item:last-child .nav-link {
+        border-radius: 0 $border-radius 0 0;
+    }
+
+    .nav-link {
+        background-color: rgba(100, 77, 0, 0.82);
+        border: none;
+
+        &:hover {
+            background-color: rgba(100, 77, 0, 0.47);
+            color: #fff;
+        }
+
+        &.active {
+            background-color: transparent;
+            color: #fff;
+        }
     }
 }
 
+.tab-content {
+    .card {
+        border: none;
+        background-color: transparent !important;
 
+        .card-body {
+            border-radius: 0 0 10px 10px;
+            background-color: #b58900d1;
+        }
+    }
 
+    .form-check {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-left: 0;
+        font-size: 15px;
+        color: #b2b2b2;
+    }
 
+    .check-box-wrapper {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
 
+        .form-check-input {
+            position: static;
+            margin: 0 7px 0 0;
+        }
+    }
 
+    a {
+        color: #b2b2b2;
 
+        &:hover {
+            color: #fff;
+        }
+    }
 
-
-
+    .submit-form-btn {
+        padding: 7px 25px;
+    }
+}
+// Sign in and register form end
 
 
 

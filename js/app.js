@@ -101,7 +101,7 @@ class UI {
             let timerID = setTimeout(() => {
                 const template = `
                  <div class="col-4 animated fadeInUp">
-                    <div class="card text-white bg-primary">
+                    <div class="card news-item text-white bg-primary">
                         <div class="close-description-icon">&#10005;</div>
                         <div class="description">
                             <h3 class="title">${title}</h3>

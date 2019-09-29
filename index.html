@@ -45,7 +45,6 @@
         <!--/container-fluid-->
     </nav>
 </header>
-
 <main>
     <div class="show-modal-wrapper">
         <div class="show-modal">Search news</div>
@@ -54,6 +53,97 @@
     <div class="container">
         <div class="row news-container">
             <p class="no-news">Type query in field, or click search news button and choose your country and category.</p>
+        </div>
+        <!--/row-->
+    </div>
+    <!--/container-->
+
+    <div class="container">
+        <div class="row">
+            <div class="col-12 align-self-center">
+
+                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="home-tab" data-toggle="tab" href="#sign-in" role="tab" aria-controls="home" aria-selected="true">Sign in</a>
+                    </li>
+                    <!--/nav-item-->
+                    <li class="nav-item">
+                        <a class="nav-link" id="profile-tab" data-toggle="tab" href="#register" role="tab" aria-controls="profile" aria-selected="false">Register</a>
+                    </li>
+                    <!--/nav-item-->
+                </ul>
+                <!--/nav nav-tabs-->
+
+                <div class="tab-content" id="myTabContent">
+                    <div class="tab-pane fade show active" id="sign-in" role="tabpanel" aria-labelledby="home-tab">
+                        <div class="card sign-in-form text-white bg-primary">
+                            <div class="card-body">
+                                <form action="">
+                                    <div class="form-group">
+                                        <label for="sign-in-email">Email address</label>
+                                        <input type="email" class="form-control" id="sign-in-email" aria-describedby="emailHelp" placeholder="Enter email">
+                                    </div>
+                                    <!--/form-group-->
+                                    <div class="form-group">
+                                        <label for="sign-in-password">Password</label>
+                                        <input type="password" class="form-control" id="sign-in-password" placeholder="Password">
+                                    </div>
+                                    <!--/form-group-->
+                                    <fieldset class="form-group">
+                                        <div class="form-check">
+                                            <div class="check-box-wrapper">
+                                                <input class="form-check-input" id="check-box-remember-me" type="checkbox" value="" checked="">
+                                                <label class="form-check-label" for="check-box-remember-me">
+                                                    Remember me
+                                                </label>
+                                            </div>
+                                            <a href="">Forgot password?</a>
+                                        </div>
+                                        <!--/form-check-->
+                                    </fieldset>
+                                    <!--/form-group-->
+                                    <button type="submit" class="btn btn-primary submit-form-btn">Submit</button>
+                                </form>
+                                <!--/form-->
+                            </div>
+                            <!--/card-body-->
+                        </div>
+                        <!--/card-->
+                    </div>
+                    <!--/tab-pane-->
+                    <div class="tab-pane fade" id="register" role="tabpanel" aria-labelledby="profile-tab">
+                        <div class="card sign-in-form text-white bg-primary">
+                            <div class="card-body">
+                                <form action="">
+                                    <div class="form-group">
+                                        <label for="sign-up-name">Name</label>
+                                        <input type="text" class="form-control" id="sign-up-name" aria-describedby="emailHelp" placeholder="Enter name">
+                                    </div>
+                                    <!--/form-group-->
+                                    <div class="form-group">
+                                        <label for="sign-up-email">Email address</label>
+                                        <input type="email" class="form-control" id="sign-up-email" aria-describedby="emailHelp" placeholder="Enter email">
+                                        <small id="sign-up-email-help" class="form-text text-muted">We'll never share your email with anyone else.</small>
+                                    </div>
+                                    <!--/form-group-->
+                                    <div class="form-group">
+                                        <label for="sign-up-password">Password</label>
+                                        <input type="password" class="form-control" id="sign-up-password" placeholder="Password">
+                                    </div>
+                                    <!--/form-group-->
+                                    <button type="submit" class="btn btn-primary submit-form-btn">Submit</button>
+                                </form>
+                                <!--/form-->
+                            </div>
+                            <!--/card-body-->
+                        </div>
+                        <!--/card-->
+                    </div>
+                    <!--/tab-pane-->
+                </div>
+                <!--/ul nav-tabs-->
+            </div>
+            <!--/col-12-->
         </div>
         <!--/row-->
     </div>
@@ -103,8 +193,6 @@
 </main>
 
 
-
-
 <!--Font awesome-->
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
 
@@ -114,12 +202,6 @@
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
-
-<!--UI js-->
-<!--<script src="js/ui.js"></script>-->
-
-<!--UI js-->
-<script src="js/localStorage.js"></script>
 
 <!--App js-->
 <script src="js/app.js"></script>

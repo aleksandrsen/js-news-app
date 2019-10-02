@@ -1,0 +1,47 @@
+{{#if isSearchNews}}
+    <div class="show-modal-wrapper">
+        <div class="show-modal">Search news</div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="searchNewsCard" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="card text-white border-secondary bg-dark">
+                    <div class="card-header">Search news by country or category</div>
+                    <div class="close-icon-modal">&#10005;</div>
+                    <div class="card-body">
+                        <form id="country-form">
+
+                            <label for="country">Choose your country</label>
+                            <select class="form-control" id="country">
+                            </select>
+                            <!--/country-->
+
+                            <label for="category" class="category">Choose news category</label>
+                            <select class="form-control" id="category">
+                            </select>
+                            <!--/category-->
+
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </form>
+                        <!--/country-form-->
+                        <form id="source-form">
+                            <label for="resource">Choose news resource</label>
+                            <select class="form-control" id="resource">
+                            </select>
+                            <!--/resource-->
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </form>
+                        <!--/source-form-->
+                    </div>
+                    <!--card-body-->
+                </div>
+                <!--/card-->
+            </div>
+            <!--/modal-content-->
+        </div>
+        <!--/modal-dialog-->
+    </div>
+    <!--/modal-->
+{{/if}}

@@ -565,7 +565,7 @@ const countriesArr = [
         code: 've',
         id: 'country'
     }
-];     //++++++++++++++++++
+];
 const categoriesArr = [
     {
         name: 'General',
@@ -646,7 +646,6 @@ const resourcesArr = [
 const countriesResourcesArr = countriesArr.concat(resourcesArr);
 
 // Init elements
-const logo = document.querySelector('.navbar-brand');
 const newsContainer = document.querySelector('.row.news-container');
 const searchingList  = document.querySelector('.searching-list'); // header
 const searchingInput = document.querySelector('header input.form-control'); // header
@@ -679,33 +678,28 @@ window.addEventListener('load', e => {
         selectedText: 'Choose news resource'
     });
     // searchNewsByCountry(e);
-});     //++++++++++++++++++
+});
 
-window.addEventListener('scroll', showVisible);     //++++++++++++++++++
+window.addEventListener('scroll', showVisible);
 
-logo.addEventListener('click', (e) => {
-    ui.cleanNewsContainer();
-    document.body.style.overflowY = 'auto';
-});     //++++++++++++++++++
-
-document.addEventListener('click', closeSearchingList);     //++++++++++++++++++
+document.addEventListener('click', closeSearchingList);
 
 // Header form events
-searchingInput.addEventListener('input', displayMatches);     //++++++++++++++++++
+searchingInput.addEventListener('input', displayMatches);
 
 searchingInput.addEventListener('input', searching);
 
 searchingInput.addEventListener('keyup', (e) => setSearchingListValue());
 
-searchNewsForm.addEventListener('submit', searchNewsByRequest);     //++++++++++++++++++
+searchNewsForm.addEventListener('submit', searchNewsByRequest);
 // Modal events
-showModalBtn.on('click', ui.showModal);     //++++++++++++++++++
+showModalBtn.on('click', ui.showModal);
 
-closeModalBtn.on('click', ui.hideModal);     //++++++++++++++++++
+closeModalBtn.on('click', ui.hideModal);
 
-countryForm.addEventListener('submit', searchNewsByCountry);     //++++++++++++++++++
+countryForm.addEventListener('submit', searchNewsByCountry);
 
-newsSourceForm.addEventListener('submit', searchNewsByNewsResource);     //++++++++++++++++++
+newsSourceForm.addEventListener('submit', searchNewsByNewsResource);
 
 // Card events
 newsContainer.addEventListener('click', addToFavorite);
@@ -725,14 +719,14 @@ function closeSearchingList(e) {
 
     searchingInput.value = '';
     searchingList.innerHTML = '';
-}     //++++++++++++++++++
+}
 
 function findMatches(wordToMatch, arr) {
     return arr.filter(item => {
         const regex = new RegExp(wordToMatch, 'gi');
         return item.name.match(regex);
     })
-}     //++++++++++++++++++
+}
 
 function displayMatches(e) {
     const matchArray = findMatches(this.value, countriesResourcesArr);
@@ -766,7 +760,7 @@ function displayMatches(e) {
             })
             .catch(err => console.log(err))
     })
-}     //++++++++++++++++++
+}
 
 function searching(e) {
     let lis = document.querySelectorAll('.searching-list li');
@@ -815,7 +809,7 @@ function searching(e) {
             lis[i].classList.add('active');
         }
     });
-}     //++++++++++++++++++
+}
 
 function setSearchingListValue() {
     let active = document.querySelector('.searching-list li.active');
@@ -827,7 +821,7 @@ function setSearchingListValue() {
         searchingInput.setAttribute('data-id', '');
     }
 
-}     //++++++++++++++++++
+}
 
 // Modal handlers
 function makeList({arr, selector, selectedValue, selectedText}) {
@@ -839,7 +833,7 @@ function makeList({arr, selector, selectedValue, selectedText}) {
         return `<option value="${item.code}">${item.name}</option>`
     }).join();
     select.insertAdjacentHTML('afterbegin', result);
-}     //++++++++++++++++++
+}
 
 function searchHelper(e, func, ...args) {
     e.preventDefault();
@@ -860,20 +854,20 @@ function searchHelper(e, func, ...args) {
             ui.showAlert('Warning', err);
             ui.cleanNewsContainer();
         });
-}     //++++++++++++++++++
+}
 
 function searchNewsByCountry(e) {
     let countryValue = document.querySelector('#country').value;
     let categoryValue = document.querySelector('#category').value;
     searchHelper(e, http.getNewsByCountry, countryValue, categoryValue);
     countryForm.reset();
-}     //++++++++++++++++++
+}
 
 function searchNewsByNewsResource(e) {
     let newsSourceValue = document.querySelector('#resource').value;
     searchHelper(e, http.getNewsByResource, newsSourceValue);
     newsSourceForm.reset();
-}     //++++++++++++++++++
+}
 
 function searchNewsByRequest(e) {
     let query = searchingInput.dataset.code || searchingInput.value;
@@ -891,7 +885,7 @@ function searchNewsByRequest(e) {
     } else {
         searchHelper(e, http.getNewsByQuery, query);
     }
-}      //++++++++++++++++++
+}
 
 // Lazy load handlers
 function isVisible(elem) {
@@ -905,7 +899,7 @@ function isVisible(elem) {
     let bottomVisible = coords.bottom < extendedBottom && coords.bottom > extendedTop;
 
     return topVisible || bottomVisible;
-}     //++++++++++++++++++
+}
 
 function showVisible() {
     for (let img of document.querySelectorAll('img')) {
@@ -917,7 +911,7 @@ function showVisible() {
             img.dataset.src = '';
         }
     }
-}     //++++++++++++++++++
+}
 
 // News card handlers
 function copyLink(e) {
@@ -932,7 +926,7 @@ function copyLink(e) {
         .catch(err => {
             ui.showAlert('Warning', `Text not copied: ${err}`);
         })
-}     //++++++++++++++++++
+}
 
 function addToFavorite(e) {
     const target = e.target;
@@ -946,7 +940,7 @@ function addToFavorite(e) {
 
     target.classList.replace('fas', 'far');
     ui.showAlert('Success', '<span style="color: #b40000">News removed from favorite!</span>');
-}     //++++++++++++++++++
+}
 
 function toggleCardDescription(e) {
     const target = e.target;
@@ -1029,34 +1023,3 @@ function closeDescription(e) {
         description.removeEventListener('transitionend', close);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

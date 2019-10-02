@@ -1,20 +1,27 @@
 {
-  "name": "bandi_landing_page",
+  "name": "news_app",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js",
+    "dev": "nodemon index.js"
   },
-  "author": "San",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aleksandrsen/news-app.git"
+  },
+  "author": "",
   "license": "ISC",
-  "dependencies": {},
+  "bugs": {
+    "url": "https://github.com/aleksandrsen/news-app/issues"
+  },
+  "homepage": "https://github.com/aleksandrsen/news-app#readme",
   "devDependencies": {
-    "browser-sync": "^2.26.3",
-    "gulp": "^4.0.0",
-    "gulp-autoprefixer": "^6.0.0",
-    "gulp-clean-css": "^4.0.0",
-    "gulp-concat": "^2.6.1",
-    "gulp-sass": "^4.0.2"
+    "nodemon": "^1.19.3"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "express-handlebars": "^3.1.0"
   }
 }

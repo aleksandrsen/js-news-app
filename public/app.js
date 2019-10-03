@@ -36,11 +36,23 @@ class Http {
         let countries = await data.json();
 
         let res = countries.forEach(countryItem => {
-            if(country.toLowerCase() === countryItem.name.toLowerCase()) {
+            if (country.toLowerCase() === countryItem.name.toLowerCase()) {
                 resUrl = countryItem.flag;
             }
         });
         return resUrl || 'notFoundFlag';
+    }
+
+    async addToFavoriteToDb(newsItem) {
+        let response = await fetch('/addToFavorite', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json;charset=utf-8'
+            },
+            body: JSON.stringify(newsItem)
+        });
+        let res = response.json();
+        return res;
     }
 }
 
@@ -294,6 +306,7 @@ const http = new Http();
 const ui = new UI();
 
 // Global arrays for news resources
+let currentNews; // this variable will be contain news that will be on page in current moment
 const countriesArr = [
     {
         name: 'Argentina',
@@ -843,6 +856,7 @@ function searchHelper(e, func, ...args) {
 
     func.apply(http, args)
         .then(data => {
+            currentNews = data.articles;
             ui.cleanNewsContainer();
             if (data.articles.length > 0) {
                 ui.showNews(data.articles);
@@ -931,15 +945,28 @@ function copyLink(e) {
 function addToFavorite(e) {
     const target = e.target;
     if (!target.closest('.right .fa-heart')) return;
+    const title = target.closest('.card').querySelector('.description .title').textContent;
 
-    if(target.classList.contains('far')) {
-        target.classList.replace('far', 'fas');
-        ui.showAlert('Success', 'News added to favorite!');
-        return;
-    }
+    if (!currentNews.length) return;
+    let targetNewsItem = currentNews.find(item => item.title === title);
+    http.addToFavoriteToDb(targetNewsItem)
+        .then(data => {
+            if(data.status === 'ok') {
+                // if(target.classList.contains('far')) {
+                    target.classList.replace('far', 'fas');
+                    ui.showAlert('Success', 'News added to favorite!');
+                    // return;
+                // }
 
-    target.classList.replace('fas', 'far');
-    ui.showAlert('Success', '<span style="color: #b40000">News removed from favorite!</span>');
+                // target.classList.replace('fas', 'far');
+                // ui.showAlert('Success', '<span style="color: #b40000">News removed from favorite!</span>');
+            } else {
+                ui.showAlert('warning', data.message);
+            }
+        })
+        .catch(err => {
+            ui.showAlert('warning', err);
+        })
 }
 
 function toggleCardDescription(e) {
@@ -1023,3 +1050,30 @@ function closeDescription(e) {
         description.removeEventListener('transitionend', close);
     }
 }
+
+
+
+
+
+
+// addToFavoriteFunc(news)
+//     .then(data => {
+//         console.log(data);
+//     })
+//     .catch(err => {
+//         console.log(err)
+//     });
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -54,6 +54,24 @@ class Http {
         let res = response.json();
         return res;
     }
+
+    async removeFromFavorite(id) {
+        let response = await fetch('/removeFromFavorite', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json;charset=utf-8'
+            },
+            body: JSON.stringify({id: id})
+        });
+        let res = response.json();
+        return res;
+    }
+
+    async getFavoriteNews() {
+        let response = await fetch('/get-favorite-news');
+        let res = await response.json();
+        return res;
+    };
 }
 
 class UI {
@@ -86,7 +104,7 @@ class UI {
     }
 
     showNews(news) {
-        let timeOut = 500;
+        let timeOut = 0;
         if (news.length <= 3) {
             document.body.style.overflowY = 'scroll';
             setTimeout(() => {
@@ -112,7 +130,7 @@ class UI {
 
             let timerID = setTimeout(() => {
                 const template = `
-                 <div class="col-4 animated fadeInUp">
+                 <div class="col-4 animated fadeInUp fast">
                     <div class="card news-item text-white bg-primary">
                         <div class="close-description-icon">&#10005;</div>
                         <div class="description">
@@ -151,7 +169,8 @@ class UI {
                                    data-placement="top"
                                    title="Copy link">
                                 </i>
-                                <i class="far fa-heart"
+                                <i class="${newsItem._id ? 'fas' : 'far'} fa-heart"
+                                    ${newsItem._id ? `data-base-Id=${newsItem._id}` : ''}
                                    data-toggle="tooltip"
                                    data-placement="top"
                                    title="Add to favorite">
@@ -307,6 +326,19 @@ const ui = new UI();
 
 // Global arrays for news resources
 let currentNews; // this variable will be contain news that will be on page in current moment
+let favoriteBtn = document.querySelector('.navbar-nav .favorite-news');
+favoriteBtn.addEventListener('click', showFavoriteNews);
+
+async function showFavoriteNews(e) {
+    e.preventDefault();
+    ui.showSpinner();
+    const favoriteNews = await http.getFavoriteNews();
+    if (!favoriteNews.length) return;
+    ui.cleanNewsContainer();
+    ui.showNews(favoriteNews);
+}
+
+
 const countriesArr = [
     {
         name: 'Argentina',
@@ -860,7 +892,8 @@ function searchHelper(e, func, ...args) {
             ui.cleanNewsContainer();
             if (data.articles.length > 0) {
                 ui.showNews(data.articles);
-                return data;
+                checkNews(data.articles.length);
+                return;
             }
             ui.showAlert('Warning', 'We could\'nt find any news for this request!');
         })
@@ -949,24 +982,39 @@ function addToFavorite(e) {
 
     if (!currentNews.length) return;
     let targetNewsItem = currentNews.find(item => item.title === title);
-    http.addToFavoriteToDb(targetNewsItem)
-        .then(data => {
-            if(data.status === 'ok') {
-                // if(target.classList.contains('far')) {
+
+    if(target.classList.contains('far')) {
+        http.addToFavoriteToDb(targetNewsItem)
+            .then(data => {
+                if(data.status === 'ok') {
                     target.classList.replace('far', 'fas');
                     ui.showAlert('Success', 'News added to favorite!');
-                    // return;
-                // }
+                    target.setAttribute('data-base-Id', data.newsId);
+                } else {
+                    ui.showAlert('warning', data.message);
+                }
+            })
+            .catch(err => {
+                ui.showAlert('warning', err);
+            })
+    } else if (target.classList.contains('fas')) {
+        const id = target.getAttribute('data-base-Id');
+        http.removeFromFavorite(id)
+            .then(data => {
+                if(data.status === 'ok') {
+                    target.classList.replace('fas', 'far');
+                    ui.showAlert('Success', '<span style="color: #b40000">News removed from favorite!</span>');
+                    target.setAttribute('data-base-Id', '');
+                } else {
+                    ui.showAlert('warning', data.message);
+                }
+            })
+            .catch(err => {
+                ui.showAlert('warning', err);
+            })
 
-                // target.classList.replace('fas', 'far');
-                // ui.showAlert('Success', '<span style="color: #b40000">News removed from favorite!</span>');
-            } else {
-                ui.showAlert('warning', data.message);
-            }
-        })
-        .catch(err => {
-            ui.showAlert('warning', err);
-        })
+    }
+
 }
 
 function toggleCardDescription(e) {
@@ -1051,29 +1099,26 @@ function closeDescription(e) {
     }
 }
 
+async function checkNews(length) {
+    const favoriteNews = await http.getFavoriteNews();
+    let time = length * 500 + 1000;
 
+    let timerId = setInterval(() => {
+            let titles = document.querySelectorAll('.card .description .title');
+            titles.forEach(title => {
+                let text = title.textContent;
+                favoriteNews.forEach(favoriteNewsItem => {
+                    if(favoriteNewsItem.title === text) {
+                        let heart = title.closest('.card').querySelector('.fa-heart');
+                        heart.classList.replace('far', 'fas');
+                        heart.setAttribute('data-base-Id', favoriteNewsItem._id);
+                    }
+                })
+            })
+    }, 1000);
 
+    setTimeout(() => clearInterval(timerId), time);
+}
 
-
-
-// addToFavoriteFunc(news)
-//     .then(data => {
-//         console.log(data);
-//     })
-//     .catch(err => {
-//         console.log(err)
-//     });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+/// try, catch в app.js
+// check, remove

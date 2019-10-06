@@ -1,6 +1,6 @@
 const {Schema, model} = require('mongoose');
 
-const news = new Schema({
+const newsSchema = new Schema({
     title: {
         type: String,
         required: true
@@ -15,8 +15,7 @@ const news = new Schema({
         type: String
     },
     description: {
-        type: String,
-        required: true
+        type: String
     },
     publishedAt: {
         type: String
@@ -26,8 +25,12 @@ const news = new Schema({
     },
     urlToImage: {
         type: String
+    },
+    userId: {
+        type: Schema.Types.ObjectId,
+        ref: 'User'
     }
-})
+});
 
-module.exports = model('News', news);
+module.exports = model('News', newsSchema);
 

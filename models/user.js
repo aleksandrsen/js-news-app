@@ -17,5 +17,13 @@ userSchema.methods.addToFavoriteNews = function (newsId) {
     return this.save();
 };
 
+userSchema.methods.removeFromFavorite = function (newsId) {
+    let favoriteNews = [...this.favoriteNews];
+    let idx = favoriteNews.findIndex(item => item.toString() === newsId.toString());
+    favoriteNews.splice(idx, 1);
+    this.favoriteNews = favoriteNews;
+    return this.save();
+};
+
 module.exports = model('User', userSchema);
 

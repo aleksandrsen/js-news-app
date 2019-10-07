@@ -4,7 +4,7 @@
             <a class="navbar-brand" href="/">News api</a>
             <div class="collapse navbar-collapse">
 
-
+                {{#if isSearchNews}}
                     <form class="form-inline my-2 my-lg-0 search-news-form">
                         <input class="form-control mr-sm-2" type="text" placeholder="Type country, news resource or query">
                         <ul class="searching-list">
@@ -12,12 +12,12 @@
                         <button class="btn btn-secondary my-2 my-sm-0" type="submit">Search</button>
                     </form>
                     <!--/search-news-form-->
-
+                {{/if}}
 
                 <ul class="navbar-nav">
                     <!--home-->
                     {{#if isHome}}
-                        <li class="nav-item active"><a class="nav-link" href="/">Main</a></li>
+                        <li class="nav-item active main"><a class="nav-link" href="/">Main</a></li>
                     {{else}}
                         <li class="nav-item"><a class="nav-link" href="/">Main</a></li>
                     {{/if}}
@@ -29,7 +29,7 @@
                     {{/if}}
                     <!--login-->
                     {{#if isLogin}}
-                        <li class="nav-item active"><a class="nav-link" href="/login">Login</a></li>
+                        <li class="nav-item active login"><a class="nav-link" href="/login">Login</a></li>
                     {{else}}
                         <li class="nav-item"><a class="nav-link" href="/login">Login</a></li>
                     {{/if}}

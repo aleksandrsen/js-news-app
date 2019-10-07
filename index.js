@@ -3,6 +3,8 @@ const path = require('path');
 const exphbs = require('express-handlebars');
 const app = express();
 const mongoose = require('mongoose');
+const session = require('express-session');
+const varMiddlware = require('./middleware/variables');
 const News = require('./models/news');
 const User = require('./models/user');
 
@@ -27,25 +29,38 @@ app.use(async (req, res, next) => {
 
 app.use(express.static(path.join(__dirname, 'public'))); // set place where will be static files
 app.use(express.json());
+app.use(session({
+   secret: 'some secret value',
+   resave: false,
+   saveUninitialized: false
+}));
+// app.use(varMiddlware);
 
 app.get('/', (req, res) => {
    res.render('index', {
       isHome: true,
-      isSearchNews: true
+      isSearchNews: true,
+      isModal: true
    });
 });
 
 app.get('/login', (req, res) => {
    res.render('login', {
       isLogin: true,
-      isSearchNews: false
    });
+});
+
+app.post('/login/auth', (req, res) => {
+   // req.session.isAuthenicated = true;
+   res.send({
+      message: 'hello user'
+   })
+
 });
 
 app.get('/favorite-news', async (req, res) => {
    res.render('favorite-news', {
-      isFavorite: true,
-      isSearchNews: false
+      isFavorite: true
    });
 });
 
@@ -90,6 +105,7 @@ app.post('/addToFavorite', async (req, res) => {
 app.post('/removeFromFavorite', async (req, res) => {
    try {
       await News.deleteOne({_id: req.body.id});
+      await req.user.removeFromFavorite(req.body.id);
       res.send({
          status: 'ok',
          message: 'News removed to favorite'
@@ -101,7 +117,6 @@ app.post('/removeFromFavorite', async (req, res) => {
       })
    }
 });
-
 
 const url = `mongodb+srv://Aleksandr:7DHGdREQmKkYU7P@cluster0-nhjez.mongodb.net/newsApp`;
 async function start() {

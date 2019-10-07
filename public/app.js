@@ -42,6 +42,10 @@ class Http {
         });
         return resUrl || 'notFoundFlag';
     }
+}
+
+class DB {
+    constructor() {};
 
     async addToFavoriteToDb(newsItem) {
         let response = await fetch('/addToFavorite', {
@@ -55,19 +59,19 @@ class Http {
         return res;
     }
 
-    async removeFromFavorite(id) {
+    async removeFromFavoriteFromDb(id) {
         let response = await fetch('/removeFromFavorite', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json;charset=utf-8'
             },
-            body: JSON.stringify({id: id})
+            body: JSON.stringify({id})
         });
         let res = response.json();
         return res;
     }
 
-    async getFavoriteNews() {
+    async getFavoriteNewsFromDb() {
         let response = await fetch('/get-favorite-news');
         let res = await response.json();
         return res;
@@ -109,11 +113,10 @@ class UI {
             document.body.style.overflowY = 'scroll';
             setTimeout(() => {
                 document.body.style.overflowY = 'auto';
-            }, 5 * timeOut)
+            }, 1500)
         } else if (news.length > 3) {
             document.body.style.overflowY = 'scroll';
         }
-
 
         news.forEach((newsItem, idx) => {
             let {
@@ -206,7 +209,7 @@ class UI {
 
         const template = `
             <div class="alert alert-dismissible alert-${messageType} animated">
-                <button type="button" class="close" data-dismiss="alert">&#10005;</button>
+                ${messageType === "info" ? '' : '<button type="button" class="close" data-dismiss="alert">&#10005;</button>'}
                 ${messageType === "info" ? '' : `<p class=\"alert-header\">${messageType === 'warning' ? 'Error' : type}</p>`}
                 <p class="alert-content">${message}</p>
             </div>`;
@@ -320,25 +323,30 @@ class UI {
     }
 }
 
-// Init classes
-const http = new Http();
-const ui = new UI();
+class Auth {
+    constructor() {}
 
-// Global arrays for news resources
-let currentNews; // this variable will be contain news that will be on page in current moment
-let favoriteBtn = document.querySelector('.navbar-nav .favorite-news');
-favoriteBtn.addEventListener('click', showFavoriteNews);
-
-async function showFavoriteNews(e) {
-    e.preventDefault();
-    ui.showSpinner();
-    const favoriteNews = await http.getFavoriteNews();
-    if (!favoriteNews.length) return;
-    ui.cleanNewsContainer();
-    ui.showNews(favoriteNews);
+    async login(email, password) {
+        let response = await fetch('/login/auth', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json;charset=utf-8'
+            },
+            body: JSON.stringify({email, password})
+        });
+        let res = await response.json();
+        return res;
+    }
 }
 
+// Init classes
+const http = new Http();
+const db = new DB();
+const ui = new UI();
+const auth = new Auth();
 
+// Global variables
+let currentNews;
 const countriesArr = [
     {
         name: 'Argentina',
@@ -347,7 +355,7 @@ const countriesArr = [
     },
     {
         name: 'Australia',
-        code: 'ar',
+        code: 'au',
         id: 'country'
     },
     {
@@ -692,18 +700,14 @@ const countriesResourcesArr = countriesArr.concat(resourcesArr);
 
 // Init elements
 const newsContainer = document.querySelector('.row.news-container');
-const searchingList  = document.querySelector('.searching-list'); // header
-const searchingInput = document.querySelector('header input.form-control'); // header
-// Card buttons
 const showModalBtn = $('.show-modal-wrapper');
 const closeModalBtn = $('.close-icon-modal');
-// Forms
-const countryForm = document.querySelector('#country-form'); // modal
-const newsSourceForm = document.querySelector('#source-form'); // modal
-const searchNewsForm = document.querySelector('.search-news-form'); // header
 
 // Add events
+// Load page events
 window.addEventListener('load', e => {
+    let isMainPage = document.querySelector('.navbar-nav .active.main');
+    if(!isMainPage) return;
     makeList({
         arr: countriesArr,
         selector: '#country',
@@ -725,43 +729,96 @@ window.addEventListener('load', e => {
     // searchNewsByCountry(e);
 });
 
+window.addEventListener('load', showFavoriteNews);
+
+// Lazy load event
 window.addEventListener('scroll', showVisible);
+
+// Auth events
+document.addEventListener('submit', loginApp);
+
+// Header input field events
+document.addEventListener('input', displayMatches);
+
+document.addEventListener('input', searching);
+
+document.addEventListener('keyup', e => setSearchingListValue(e));
+
+document.addEventListener('submit', searchNewsByRequest);
 
 document.addEventListener('click', closeSearchingList);
 
-// Header form events
-searchingInput.addEventListener('input', displayMatches);
-
-searchingInput.addEventListener('input', searching);
-
-searchingInput.addEventListener('keyup', (e) => setSearchingListValue());
-
-searchNewsForm.addEventListener('submit', searchNewsByRequest);
 // Modal events
 showModalBtn.on('click', ui.showModal);
 
 closeModalBtn.on('click', ui.hideModal);
 
-countryForm.addEventListener('submit', searchNewsByCountry);
+// Search news by country and news resource
+document.body.addEventListener('submit', searchNewsByCountry);
 
-newsSourceForm.addEventListener('submit', searchNewsByNewsResource);
+document.body.addEventListener('submit', searchNewsByNewsResource);
 
 // Card events
-newsContainer.addEventListener('click', addToFavorite);
+newsContainer.addEventListener('click', toggleFavorite);
 
 newsContainer.addEventListener('click', copyLink);
 
 newsContainer.addEventListener('click', toggleCardDescription);
 
-newsContainer.addEventListener('click', toggleCardDescription);
-
 
 // Events handlers
+// Show and check favorite news
+async function showFavoriteNews(e) {
+    const isFavoriteNewsActive = document.querySelector(('.navbar-nav .favorite-news.active'));
+    if(!isFavoriteNewsActive) return;
+    try {
+        ui.showSpinner();
+        const favoriteNews = await db.getFavoriteNewsFromDb();
+        if (!favoriteNews.length) {
+            ui.cleanNewsContainer();
+            document.querySelector('.news-container').innerHTML = '<h1>You don\'t have favorite news yet!';
+            return;
+        }
+        ui.cleanNewsContainer();
+        currentNews = favoriteNews;
+        ui.showNews(favoriteNews);
+    } catch (e) {
+        ui.showAlert('Warning', 'We can\'t find your favorite news:' + e.message);
+    }
+}
+
+async function checkFavoriteNews(length) {
+    let time = length * 500 + 5000;
+
+    let timerId = setInterval(async () => {
+        try {
+            const favoriteNews = await db.getFavoriteNewsFromDb();
+            let titles = document.querySelectorAll('.card .description .title');
+            titles.forEach(title => {
+                let text = title.textContent;
+                favoriteNews.forEach(favoriteNewsItem => {
+                    if(favoriteNewsItem.title === text) {
+                        let heart = title.closest('.card').querySelector('.fa-heart');
+                        heart.classList.replace('far', 'fas');
+                        heart.setAttribute('data-base-Id', favoriteNewsItem._id);
+                    }
+                })
+            })
+        } catch (e) {
+            ui.showAlert('Warning', 'We can\'t check your favorite news!');
+        }
+    }, 2000);
+
+    setTimeout(() => clearInterval(timerId), time);
+}
+
 // Header form handlers
 function closeSearchingList(e) {
-    let target = e.target;
+    const target = e.target;
     if(target.closest('.searching-list') || target.closest('.search-news-form .btn.btn-secondary')) return;
-
+    const searchingList  = document.querySelector('.searching-list');
+    const searchingInput = document.querySelector('header input.form-control');
+    if(!searchingList) return;
     searchingInput.value = '';
     searchingList.innerHTML = '';
 }
@@ -774,7 +831,12 @@ function findMatches(wordToMatch, arr) {
 }
 
 function displayMatches(e) {
-    const matchArray = findMatches(this.value, countriesResourcesArr);
+    let target = e.target;
+    if(!target.closest('header input.form-control')) return;
+
+    const input = document.querySelector('header input.form-control');
+    const searchingList = document.querySelector('header .searching-list');
+    const matchArray = findMatches(input.value, countriesResourcesArr);
 
     const html = matchArray.map(({name, code, id}) => {
         return `
@@ -786,7 +848,11 @@ function displayMatches(e) {
 
     searchingList.innerHTML = html;
 
-    matchArray.forEach(({name, id}, idx) => {
+    showCountryFlags(matchArray);
+}
+
+function showCountryFlags(arr) {
+    arr.forEach(({name, id}, idx) => {
         if (id === "resource") return;
         if (idx > 10) return;
 
@@ -808,6 +874,11 @@ function displayMatches(e) {
 }
 
 function searching(e) {
+    let target = e.target;
+    if(!target.closest('header input.form-control')) return;
+    const searchingInput = document.querySelector('header input.form-control');
+    const searchNewsForm = document.querySelector('header .search-news-form');
+
     let lis = document.querySelectorAll('.searching-list li');
     if(!lis[0]) return;
     let i = 0;
@@ -831,9 +902,9 @@ function searching(e) {
         });
 
         li.addEventListener('click', (e) => {
-            setSearchingListValue();
+            setSearchingListValue(e);
             let event = new Event('submit');
-            searchNewsForm.dispatchEvent(event);
+            document.dispatchEvent(event);
         });
     });
 
@@ -856,8 +927,11 @@ function searching(e) {
     });
 }
 
-function setSearchingListValue() {
+function setSearchingListValue(e) {
+    let target = e.target;
+    if(!(target.closest('header input.form-control') || target.closest('header .searching-list li'))) return;
     let active = document.querySelector('.searching-list li.active');
+    const searchingInput = document.querySelector('header input.form-control'); // header
     if (active) {
         searchingInput.setAttribute('data-code', active.dataset.code);
         searchingInput.setAttribute('data-id', active.dataset.id);
@@ -866,6 +940,39 @@ function setSearchingListValue() {
         searchingInput.setAttribute('data-id', '');
     }
 
+}
+
+function searchNewsByRequest(e) {
+    e.preventDefault();
+    let target = e.target;
+    if (!e.isTrusted) {
+        find();
+        return;
+    }
+
+    if(!target.closest('header .search-news-form')) return;
+
+    find();
+
+    function find() {
+        const searchingInput = document.querySelector('header input.form-control');
+        const searchingList = document.querySelector('header .searching-list');
+        let query = searchingInput.dataset.code || searchingInput.value;
+        let id = searchingInput.dataset.id;
+        searchingList.innerHTML = '';
+        searchingInput.value = '';
+        searchingInput.setAttribute('data-code', '');
+        searchingInput.setAttribute('data-id', '');
+        searchingInput.blur();
+
+        if (id === 'country') {
+            searchHelper(e, http.getNewsByCountry, query, 'general');
+        } else if (id === 'resource') {
+            searchHelper(e, http.getNewsByResource, query);
+        } else {
+            searchHelper(e, http.getNewsByQuery, query);
+        }
+    }
 }
 
 // Modal handlers
@@ -892,46 +999,34 @@ function searchHelper(e, func, ...args) {
             ui.cleanNewsContainer();
             if (data.articles.length > 0) {
                 ui.showNews(data.articles);
-                checkNews(data.articles.length);
+                checkFavoriteNews(data.articles.length);
                 return;
             }
             ui.showAlert('Warning', 'We could\'nt find any news for this request!');
         })
         .catch(err => {
-            ui.showAlert('Warning', err);
             ui.cleanNewsContainer();
+            ui.showAlert('Warning', err);
         });
 }
 
 function searchNewsByCountry(e) {
-    let countryValue = document.querySelector('#country').value;
-    let categoryValue = document.querySelector('#category').value;
+    const target = e.target;
+    if(!target.closest('#country-form')) return;
+    const countryForm = document.querySelector('#country-form');
+    const countryValue = countryForm.querySelector('#country').value;
+    const categoryValue = countryForm.querySelector('#category').value;
     searchHelper(e, http.getNewsByCountry, countryValue, categoryValue);
     countryForm.reset();
 }
 
 function searchNewsByNewsResource(e) {
-    let newsSourceValue = document.querySelector('#resource').value;
+    const target = e.target;
+    if(!target.closest('#source-form')) return;
+    const newsSourceForm = document.querySelector('#source-form');
+    const newsSourceValue = newsSourceForm.querySelector('#resource').value;
     searchHelper(e, http.getNewsByResource, newsSourceValue);
     newsSourceForm.reset();
-}
-
-function searchNewsByRequest(e) {
-    let query = searchingInput.dataset.code || searchingInput.value;
-    let id = searchingInput.dataset.id;
-    searchingList.innerHTML = '';
-    searchingInput.value = '';
-    searchingInput.setAttribute('data-code', '');
-    searchingInput.setAttribute('data-id', '');
-    searchingInput.blur();
-
-    if (id === 'country') {
-        searchHelper(e, http.getNewsByCountry, query, 'general');
-    } else if (id === 'resource') {
-        searchHelper(e, http.getNewsByResource, query);
-    } else {
-        searchHelper(e, http.getNewsByQuery, query);
-    }
 }
 
 // Lazy load handlers
@@ -962,10 +1057,10 @@ function showVisible() {
 
 // News card handlers
 function copyLink(e) {
-    let target = e.target;
+    const target = e.target;
     if (!target.closest('.right .fa-copy')) return;
-    let card = target.closest('.card');
-    let link = card.querySelector('#copy-text').value;
+    const card = target.closest('.card');
+    const link = card.querySelector('#copy-text').value;
     navigator.clipboard.writeText(link)
         .then(some => {
             ui.showAlert('Info', 'Link copied');
@@ -975,46 +1070,51 @@ function copyLink(e) {
         })
 }
 
-function addToFavorite(e) {
+function toggleFavorite(e) {
     const target = e.target;
     if (!target.closest('.right .fa-heart')) return;
     const title = target.closest('.card').querySelector('.description .title').textContent;
 
-    if (!currentNews.length) return;
     let targetNewsItem = currentNews.find(item => item.title === title);
 
-    if(target.classList.contains('far')) {
-        http.addToFavoriteToDb(targetNewsItem)
+    if (target.classList.contains('far')) {
+        db.addToFavoriteToDb(targetNewsItem)
             .then(data => {
-                if(data.status === 'ok') {
-                    target.classList.replace('far', 'fas');
-                    ui.showAlert('Success', 'News added to favorite!');
-                    target.setAttribute('data-base-Id', data.newsId);
-                } else {
-                    ui.showAlert('warning', data.message);
-                }
-            })
-            .catch(err => {
-                ui.showAlert('warning', err);
+                addToFavorite(data);
             })
     } else if (target.classList.contains('fas')) {
         const id = target.getAttribute('data-base-Id');
-        http.removeFromFavorite(id)
+        db.removeFromFavoriteFromDb(id)
             .then(data => {
-                if(data.status === 'ok') {
-                    target.classList.replace('fas', 'far');
-                    ui.showAlert('Success', '<span style="color: #b40000">News removed from favorite!</span>');
-                    target.setAttribute('data-base-Id', '');
-                } else {
-                    ui.showAlert('warning', data.message);
-                }
+                removeFromFavorite(data)
             })
-            .catch(err => {
-                ui.showAlert('warning', err);
-            })
-
     }
 
+    function addToFavorite(data) {
+        if(data.status === 'ok') {
+            target.classList.replace('far', 'fas');
+            ui.showAlert('Success', 'News added to favorite!');
+            target.setAttribute('data-base-Id', data.newsId);
+        } else {
+            ui.showAlert('warning', data.message);
+        }
+    }
+
+    function removeFromFavorite(data) {
+        if(data.status === 'ok') {
+            target.classList.replace('fas', 'far');
+
+            let activeNavLink = document.querySelector('.navbar-nav .favorite-news');
+
+            if(activeNavLink.classList.contains('active')) {
+                target.closest('.col-4').remove();
+            }
+            ui.showAlert('Info', '<span>News removed from favorite!</span>');
+            target.setAttribute('data-base-Id', '');
+        } else {
+            ui.showAlert('warning', data.message);
+        }
+    }
 }
 
 function toggleCardDescription(e) {
@@ -1028,11 +1128,9 @@ function toggleCardDescription(e) {
     const description = card.querySelector('.description');
 
     if (target === readMore) {
-
         cardHeader.addEventListener('transitionend', open);
         card.classList.add('show-description');
     } else if (target === closeDescriptionIcon) {
-
         description.addEventListener('transitionend', close);
         description.classList.remove('show');
         closeDescriptionIcon.classList.remove('show');
@@ -1058,67 +1156,28 @@ function toggleCardDescription(e) {
     }
 }
 
-function readMore(e) {
+// login and register handlers
+async function loginApp(e) {
+    e.preventDefault();
     const target = e.target;
-    if (!target.closest('.left .read-more')) return;
-
-    const card = target.closest('.card');
-    const cardHeader = card.querySelector('.card-header');
-    const description = card.querySelector('.description');
-    const closeDescriptionIcon = card.querySelector('.close-description-icon');
-
-    card.classList.add('show-description');
-
-    cardHeader.addEventListener('transitionend', open);
-
-    function open(e) {
-        description.classList.add('show');
-        closeDescriptionIcon.classList.add('show');
-        cardHeader.removeEventListener('transitionend', open);
-    }
+    if(!document.querySelector('.navbar-nav .login.active')) return;
+    if(!target.closest('#login-form')) return;
+    const loginForm = document.querySelector('#login-form');
+    const email = loginForm.querySelector('#sign-in-email');
+    const password = loginForm.querySelector('#sign-in-password');
+    const res = await auth.login(email.value, password.value);
+    console.log(res);
 }
 
-function closeDescription(e) {
-    const target = e.target;
-    if (!target.closest('.card.show-description')) return;
-    if (!target.closest('.card .close-description-icon')) return;
 
-    const card = target.closest('.card.show-description');
-    const cardHeader = card.querySelector('.card-header');
-    const description = card.querySelector('.description');
-    const closeDescriptionIcon = card.querySelector('.close-description-icon');
 
-    description.classList.remove('show');
-    closeDescriptionIcon.classList.remove('show');
 
-    description.addEventListener('transitionend', close);
 
-    function close(e) {
-        card.classList.remove('show-description');
-        description.removeEventListener('transitionend', close);
-    }
-}
 
-async function checkNews(length) {
-    const favoriteNews = await http.getFavoriteNews();
-    let time = length * 500 + 1000;
 
-    let timerId = setInterval(() => {
-            let titles = document.querySelectorAll('.card .description .title');
-            titles.forEach(title => {
-                let text = title.textContent;
-                favoriteNews.forEach(favoriteNewsItem => {
-                    if(favoriteNewsItem.title === text) {
-                        let heart = title.closest('.card').querySelector('.fa-heart');
-                        heart.classList.replace('far', 'fas');
-                        heart.setAttribute('data-base-Id', favoriteNewsItem._id);
-                    }
-                })
-            })
-    }, 1000);
 
-    setTimeout(() => clearInterval(timerId), time);
-}
 
-/// try, catch в app.js
-// check, remove
+
+
+
+

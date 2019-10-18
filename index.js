@@ -6,6 +6,8 @@ const mongoose = require('mongoose');
 const session = require('express-session');
 const MongoStore = require('connect-mongodb-session')(session);
 const bcyrpt = require('bcryptjs');
+const keys = require('./keys');
+const regEmail = require('./emails/registration');
 // Models
 const News = require('./models/news');
 const User = require('./models/user');
@@ -13,9 +15,14 @@ const User = require('./models/user');
 const varMiddleware = require('./middleware/variables');
 const userMiddleware = require('./middleware/user');
 const auth = require('./middleware/auth');
+const nodemailer = require('nodemailer');
+const sendgrid = require('nodemailer-sendgrid-transport');
+
+const transporter = nodemailer.createTransport(sendgrid({
+    auth: {api_key: keys.SEND_GRID_APi_KEY}
+}));
 
 
-const MONGODB_URI = `mongodb+srv://Aleksandr:7DHGdREQmKkYU7P@cluster0-nhjez.mongodb.net/newsApp`;
 const hbs = exphbs.create({
    defaultLayout: 'main',
    extname: 'hbs'
@@ -27,13 +34,13 @@ app.set('views', 'views');
 
 const store = new MongoStore({
     collection: 'sessions',
-    uri: MONGODB_URI
+    uri: keys.MONGODB_URI
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 app.use(session({
-   secret: 'some secret value',
+   secret: keys.SESSION_SECRET,
    resave: false,
    saveUninitialized: false,
    store
@@ -131,6 +138,7 @@ app.post('/register', async (req, res) => {
             res.send({
                 status: 'ok'
             });
+            await transporter.sendMail(regEmail(email));
         }
 
     } catch (e) {
@@ -204,7 +212,7 @@ app.post('/removeFromFavorite', auth, async (req, res) => {
 
 // Start
 async function start() {
-   await mongoose.connect(MONGODB_URI, {useNewUrlParser: true, useUnifiedTopology: true });
+   await mongoose.connect(keys.MONGODB_URI, {useNewUrlParser: true, useUnifiedTopology: true });
    const PORT = process.env.PORT || 3000;
 
    app.listen(PORT, () => {
@@ -213,8 +221,6 @@ async function start() {
 }
 start();
 
-
-// add favicon
 
 
 

@@ -2,11 +2,11 @@
 
     <ul class="nav nav-tabs" id="myTab" role="tablist">
         <li class="nav-item">
-            <a class="nav-link active" id="home-tab" data-toggle="tab" href="#sign-in" role="tab" aria-controls="home" aria-selected="true">Sign in</a>
+            <a class="nav-link active sign-in" id="home-tab" data-toggle="tab" href="#sign-in" role="tab" aria-controls="home" aria-selected="true">Sign in</a>
         </li>
         <!--/nav-item-->
         <li class="nav-item">
-            <a class="nav-link" id="profile-tab" data-toggle="tab" href="#register" role="tab" aria-controls="profile" aria-selected="false">Register</a>
+            <a class="nav-link register" id="profile-tab" data-toggle="tab" href="#register" role="tab" aria-controls="profile" aria-selected="false">Register</a>
         </li>
         <!--/nav-item-->
     </ul>
@@ -52,21 +52,21 @@
         <div class="tab-pane fade" id="register" role="tabpanel" aria-labelledby="profile-tab">
             <div class="card sign-in-form text-white bg-primary">
                 <div class="card-body">
-                    <form action="">
+                    <form action="" id="register-form">
                         <div class="form-group">
-                            <label for="sign-up-name">Name</label>
-                            <input type="text" class="form-control" id="sign-up-name" name="name" aria-describedby="emailHelp" placeholder="Enter name">
+                            <label for="register-name">Name</label>
+                            <input type="text" class="form-control" id="register-name" name="name" aria-describedby="emailHelp" placeholder="Enter name">
                         </div>
                         <!--/form-group-->
                         <div class="form-group">
-                            <label for="sign-up-email">Email address</label>
-                            <input type="email" class="form-control" id="sign-up-email" name="email" aria-describedby="emailHelp" placeholder="Enter email">
+                            <label for="register-email">Email address</label>
+                            <input type="email" class="form-control" id="register-email" name="email" aria-describedby="emailHelp" placeholder="Enter email">
                             <small id="sign-up-email-help" class="form-text text-muted">We'll never share your email with anyone else.</small>
                         </div>
                         <!--/form-group-->
                         <div class="form-group">
-                            <label for="sign-up-password">Password</label>
-                            <input type="password" class="form-control" id="sign-up-password" name="password" placeholder="Password">
+                            <label for="register-password">Password</label>
+                            <input type="password" class="form-control" id="register-password" name="password" placeholder="Password">
                         </div>
                         <!--/form-group-->
                         <button type="submit" class="btn btn-primary submit-form-btn">Submit</button>

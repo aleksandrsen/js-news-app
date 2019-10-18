@@ -47,28 +47,24 @@ class Http {
 class DB {
     constructor() {};
 
-    async addToFavoriteToDb(newsItem) {
-        let response = await fetch('/addToFavorite', {
+    static async postTemplate(url, data) {
+        let response = await fetch(`/${url}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json;charset=utf-8'
             },
-            body: JSON.stringify(newsItem)
+            body: JSON.stringify(data)
         });
         let res = response.json();
         return res;
     }
 
+    async addToFavoriteToDb(newsItem) {
+        return DB.postTemplate('addToFavorite', newsItem);
+    }
+
     async removeFromFavoriteFromDb(id) {
-        let response = await fetch('/removeFromFavorite', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json;charset=utf-8'
-            },
-            body: JSON.stringify({id})
-        });
-        let res = response.json();
-        return res;
+        return DB.postTemplate('removeFromFavorite', {id});
     }
 
     async getFavoriteNewsFromDb() {
@@ -79,8 +75,8 @@ class DB {
 }
 
 class UI {
-    constructor(newsContainer) {
-        this.newsContainer = document.querySelector('.row.news-container');
+    constructor(selector) {
+        this.newsContainer = document.querySelector(selector);
         this.timers = [];
     }
 
@@ -326,7 +322,7 @@ class UI {
 class Auth {
     constructor() {}
 
-    async login(email, password) {
+    async logIn(email, password) {
         let response = await fetch('/login/auth', {
             method: 'POST',
             headers: {
@@ -337,12 +333,30 @@ class Auth {
         let res = await response.json();
         return res;
     }
+
+    async logOut() {
+        let response = await fetch('/logOut');
+        let res = await response.json();
+        return res;
+    }
+
+    async register(name, email, password) {
+        let response = await fetch('/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json;charset=utf-8'
+            },
+            body: JSON.stringify({name, email, password})
+        });
+        let res = await response.json();
+        return res;
+    }
 }
 
 // Init classes
 const http = new Http();
 const db = new DB();
-const ui = new UI();
+const ui = new UI('.row.news-container');
 const auth = new Auth();
 
 // Global variables
@@ -736,6 +750,10 @@ window.addEventListener('scroll', showVisible);
 
 // Auth events
 document.addEventListener('submit', loginApp);
+
+document.addEventListener('click', logOutApp);
+
+document.addEventListener('submit', registerUser);
 
 // Header input field events
 document.addEventListener('input', displayMatches);
@@ -1160,16 +1178,51 @@ function toggleCardDescription(e) {
 async function loginApp(e) {
     e.preventDefault();
     const target = e.target;
-    if(!document.querySelector('.navbar-nav .login.active')) return;
+    if(!document.querySelector('.navbar-nav .logIn.active')) return;
     if(!target.closest('#login-form')) return;
     const loginForm = document.querySelector('#login-form');
     const email = loginForm.querySelector('#sign-in-email');
     const password = loginForm.querySelector('#sign-in-password');
-    const res = await auth.login(email.value, password.value);
-    console.log(res);
+    const res = await auth.logIn(email.value, password.value);
+    if (res.status === 'ok') {
+        window.location.replace('/');
+    } else {
+        ui.showAlert('Warning', res.message);
+    }
 }
 
+async function logOutApp(e) {
+    const target = e.target;
+    if(!target.closest('.navbar-nav .logOut')) return;
+    const res = await auth.logOut();
+    if (res.status === 'ok') {
+        window.location.replace('/login');
+    } else {
+        ui.showAlert('Warning', res.message);
+    }
+}
 
+async function registerUser(e) {
+    e.preventDefault();
+    const target = e.target;
+    if(!target.closest('#register-form')) return;
+    const registerForm = document.querySelector('#register-form');
+    const name = registerForm.querySelector('#register-name');
+    const email = registerForm.querySelector('#register-email');
+    const password = registerForm.querySelector('#register-password');
+    const res = await auth.register(name.value, email.value, password.value);
+
+    if (res.status === 'ok') {
+        ui.showAlert('Info', 'Success');
+        registerForm.reset();
+        window.location.replace('/login');
+    } else {
+        ui.showAlert('Warning', res.message);
+    }
+}
+
+// change alert
+// main with ukrainian news without auth
 
 
 

@@ -323,7 +323,7 @@ class Auth {
     constructor() {}
 
     async logIn(email, password) {
-        let response = await fetch('/login/auth', {
+        let response = await fetch('/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json;charset=utf-8'

@@ -9,6 +9,8 @@ const bcyrpt = require('bcryptjs');
 const keys = require('./keys');
 const crypto = require('crypto');
 // Emails
+const nodemailer = require('nodemailer');
+const sendgrid = require('nodemailer-sendgrid-transport');
 const regEmail = require('./emails/registration');
 const resetEmail = require('./emails/reset');
 // Models
@@ -18,13 +20,11 @@ const User = require('./models/user');
 const varMiddleware = require('./middleware/variables');
 const userMiddleware = require('./middleware/user');
 const auth = require('./middleware/auth');
-const nodemailer = require('nodemailer');
-const sendgrid = require('nodemailer-sendgrid-transport');
+
 
 const transporter = nodemailer.createTransport(sendgrid({
     auth: {api_key: keys.SEND_GRID_APi_KEY}
 }));
-
 
 const hbs = exphbs.create({
    defaultLayout: 'main',
@@ -59,13 +59,17 @@ app.get('/', auth, (req, res) => {
    });
 });
 
-// login
+// login and logOut
 app.get('/login', (req, res) => {
    res.render('login', {
       isLogin: true
    });
 });
 
+
+
+
+// Reset and change password
 app.get('/reset', (req, res) => {
     res.render('reset', {
         title: 'Forgot password?'
@@ -87,21 +91,19 @@ app.post('/reset', (req, res) => {
                 candidate.resetTokenExp = Date.now() + 60 * 60 * 1000;
                 await candidate.save();
                 await transporter.sendMail(resetEmail(candidate.email, token));
-                res.send({
-                    status: 'ok',
-                    message: 'We send you message to email!'
-                });
+                res.send(
+                    makeResponse('ok', 'We send message to your email!')
+                );
             } else {
-                res.send({
-                    status: 'Error',
-                    message: 'User with this email doesn\'t exist!'
-                });
-               return;
-               // send error
+                res.send(res.send(
+                    makeResponse('error', 'User with this email doesn\'t exist!')
+                ));
             }
         })
     } catch (e) {
-        console.log(e);
+        res.send(res.send(
+            makeResponse('error', e)
+        ));
     }
 });
 
@@ -115,7 +117,7 @@ app.get('/password/:token', async (req, res) => {
         });
 
         if (!user) {
-            console.log('redirect');
+            console.log('Error - app.get(/password/:token)');
         } else {
             res.render('password', {
                 userId: user._id.toString(),
@@ -123,7 +125,7 @@ app.get('/password/:token', async (req, res) => {
             });
         }
     } catch (e) {
-        console.log(e);
+        console.log('Error - app.get(/password/:token)');
     }
 });
 
@@ -140,25 +142,22 @@ app.post('/password', async (req, res) => {
             user.resetToken = undefined;
             user.resetTokenExp = undefined;
             await user.save();
-            res.send({
-                status: 'ok',
-                message: 'Password changed'
-            });
+            res.send(
+                makeResponse('ok', 'Password changed!')
+            );
         } else {
-            // send error, время жизни токена истекло
-            res.send({
-                status: 'Error',
-                message: 'Token lifetime expired'
-            });
+            res.send(
+                makeResponse('error', 'Token lifetime expired!')
+            );
         }
 
     } catch (e) {
-        console.log(e);
+        console.log('app.post(/password)', e);
     }
-
 });
 
-app.post('/login/auth', async (req, res) => {
+
+app.post('/login', async (req, res) => {
     try {
         const {email, password} = req.body;
         const candidate = await User.findOne({ email });
@@ -202,10 +201,9 @@ app.post('/login/auth', async (req, res) => {
 
 app.get('/logOut', auth, (req, res) => {
     req.session.destroy(() => {
-        res.send({
-            status: 'ok',
-            message: 'logout user'
-        });
+        res.send(
+            makeResponse('ok', 'user logout')
+        );
     });
 });
 
@@ -317,6 +315,11 @@ async function start() {
 start();
 
 
-
+function makeResponse(status, message) {
+    return {
+        status,
+        message
+    }
+}
 
 

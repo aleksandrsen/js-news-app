@@ -351,6 +351,34 @@ class Auth {
         let res = await response.json();
         return res;
     }
+
+    async resetPassword(email) {
+        let response = await fetch('/reset', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json;charset=utf-8'
+            },
+            body: JSON.stringify({email})
+        });
+        let res = await response.json();
+        return res;
+    }
+
+    async changePassword(userId, password, token) {
+        let response = await fetch('/password', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json;charset=utf-8'
+            },
+            body: JSON.stringify({
+                userId,
+                password,
+                token
+            })
+        });
+        let res = await response.json();
+        return res;
+    }
 }
 
 // Init classes
@@ -754,6 +782,10 @@ document.addEventListener('submit', loginApp);
 document.addEventListener('click', logOutApp);
 
 document.addEventListener('submit', registerUser);
+
+document.addEventListener('submit', resetPassword);
+
+document.addEventListener('submit', changePassword);
 
 // Header input field events
 document.addEventListener('input', displayMatches);
@@ -1174,7 +1206,7 @@ function toggleCardDescription(e) {
     }
 }
 
-// login and register handlers
+// login, register, reset handlers
 async function loginApp(e) {
     e.preventDefault();
     const target = e.target;
@@ -1213,16 +1245,56 @@ async function registerUser(e) {
     const res = await auth.register(name.value, email.value, password.value);
 
     if (res.status === 'ok') {
-        ui.showAlert('Info', 'Success');
         registerForm.reset();
         window.location.replace('/login');
+        ui.showAlert('Info', 'Success');
     } else {
         ui.showAlert('Warning', res.message);
     }
 }
 
+async function resetPassword(e) {
+    e.preventDefault();
+    const target = e.target;
+    if(!target.closest('#reset-form')) return;
+    const resetForm = document.querySelector('#reset-form');
+    const email = resetForm.querySelector('#reset-email');
+    const res = await auth.resetPassword(email.value);
+
+    if (res.status === 'ok') {
+        resetForm.reset();
+        window.location.replace('/login');
+        ui.showAlert('Success', res.message);
+    } else {
+        ui.showAlert('Warning', res.message);
+    }
+}
+
+async function changePassword(e) {
+    e.preventDefault();
+    const target = e.target;
+    if(!target.closest('#reset-password-form')) return;
+    const resetPasswordForm = document.querySelector('#reset-password-form');
+    const password = resetPasswordForm.querySelector('#reset-password');
+    const userId = resetPasswordForm.querySelector('.btn.btn-primary').dataset.userId;
+    const token = resetPasswordForm.querySelector('.btn.btn-primary').dataset.token;
+
+    console.log(userId, password.value, token);
+
+    const res = await auth.changePassword(userId, password.value, token);
+
+    if (res.status === 'ok') {
+        resetPasswordForm.reset();
+        // window.location.replace('/login');
+        ui.showAlert('Success', res.message);
+    } else {
+        ui.showAlert('Warning', res.message);
+    }
+}
 // change alert
-// main with ukrainian news without auth
+// main with ukrainian news without auth, slider
+// make emails message with styles
+// messages response and error messages
 
 
 

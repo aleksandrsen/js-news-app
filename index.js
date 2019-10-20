@@ -7,7 +7,10 @@ const session = require('express-session');
 const MongoStore = require('connect-mongodb-session')(session);
 const bcyrpt = require('bcryptjs');
 const keys = require('./keys');
+const crypto = require('crypto');
+// Emails
 const regEmail = require('./emails/registration');
+const resetEmail = require('./emails/reset');
 // Models
 const News = require('./models/news');
 const User = require('./models/user');
@@ -61,6 +64,98 @@ app.get('/login', (req, res) => {
    res.render('login', {
       isLogin: true
    });
+});
+
+app.get('/reset', (req, res) => {
+    res.render('reset', {
+        title: 'Forgot password?'
+    });
+});
+
+app.post('/reset', (req, res) => {
+    try {
+        crypto.randomBytes(32, async (err, buffer) => {
+            if (err) {
+                console.log(err);
+                return;
+            }
+            const token = buffer.toString('hex');
+            const candidate = await User.findOne({email: req.body.email});
+
+            if (candidate) {
+                candidate.resetToken = token;
+                candidate.resetTokenExp = Date.now() + 60 * 60 * 1000;
+                await candidate.save();
+                await transporter.sendMail(resetEmail(candidate.email, token));
+                res.send({
+                    status: 'ok',
+                    message: 'We send you message to email!'
+                });
+            } else {
+                res.send({
+                    status: 'Error',
+                    message: 'User with this email doesn\'t exist!'
+                });
+               return;
+               // send error
+            }
+        })
+    } catch (e) {
+        console.log(e);
+    }
+});
+
+app.get('/password/:token', async (req, res) => {
+    if (!req.params.token) return;
+
+    try {
+        const user = await User.findOne({
+            resetToken: req.params.token,
+            resetTokenExp: {$gt: Date.now()}
+        });
+
+        if (!user) {
+            console.log('redirect');
+        } else {
+            res.render('password', {
+                userId: user._id.toString(),
+                token: req.params.token
+            });
+        }
+    } catch (e) {
+        console.log(e);
+    }
+});
+
+app.post('/password', async (req, res) => {
+    try {
+        const user = await User.findOne({
+            _id: req.body.userId,
+            resetToken: req.body.token,
+            resetTokenExp: {$gt: Date.now()}
+        });
+
+        if (user) {
+            user.password = await  bcyrpt.hash(req.body.password, 10);
+            user.resetToken = undefined;
+            user.resetTokenExp = undefined;
+            await user.save();
+            res.send({
+                status: 'ok',
+                message: 'Password changed'
+            });
+        } else {
+            // send error, время жизни токена истекло
+            res.send({
+                status: 'Error',
+                message: 'Token lifetime expired'
+            });
+        }
+
+    } catch (e) {
+        console.log(e);
+    }
+
 });
 
 app.post('/login/auth', async (req, res) => {

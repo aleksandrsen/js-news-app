@@ -12,6 +12,8 @@ const userSchema = new Schema({
         type: String,
         required: true
     },
+    resetToken: String,
+    resetTokenExp: Date,
     favoriteNews: [{ type: Schema.Types.ObjectId, ref: 'News' }]
 });
 

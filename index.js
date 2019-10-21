@@ -8,6 +8,8 @@ const MongoStore = require('connect-mongodb-session')(session);
 const bcyrpt = require('bcryptjs');
 const keys = require('./keys');
 const crypto = require('crypto');
+const helmet = require('helmet');
+const compression = require('compression');
 // Emails
 const nodemailer = require('nodemailer');
 const sendgrid = require('nodemailer-sendgrid-transport');
@@ -25,12 +27,10 @@ const auth = require('./middleware/auth');
 const transporter = nodemailer.createTransport(sendgrid({
     auth: {api_key: keys.SEND_GRID_APi_KEY}
 }));
-
 const hbs = exphbs.create({
    defaultLayout: 'main',
    extname: 'hbs'
 });
-
 app.engine('hbs', hbs.engine);
 app.set('view engine', 'hbs');
 app.set('views', 'views');
@@ -48,15 +48,49 @@ app.use(session({
    saveUninitialized: false,
    store
 }));
+app.use(helmet());
+app.use(compression());
 app.use(varMiddleware);
 app.use(userMiddleware);
 
+// Main
 app.get('/', auth, (req, res) => {
    res.render('index', {
       isHome: true,
       isSearchNews: true,
       isModal: true
    });
+});
+
+// Register
+app.post('/register', async (req, res) => {
+    try {
+        let {name, email, password, } = req.body;
+        const candidate = await User.findOne({ email });
+
+        if (candidate) {
+            res.send(
+                makeResponse('error', 'User exist!')
+            );
+            return;
+        } else {
+            const hashPassword = await bcyrpt.hash(password, 10);
+            const user = new User({
+                name,
+                email,
+                password: hashPassword
+            });
+
+            await user.save();
+            res.send(
+                makeResponse('ok')
+             );
+            await transporter.sendMail(regEmail(email));
+        }
+
+    } catch (e) {
+        console.log('Error app.post(/register)', e);
+    }
 });
 
 // login and logOut
@@ -66,8 +100,48 @@ app.get('/login', (req, res) => {
    });
 });
 
+app.post('/login', async (req, res) => {
+    try {
+        const {email, password} = req.body;
+        const candidate = await User.findOne({ email });
 
+        if (candidate) {
+            const areSame = await bcyrpt.compare(password, candidate.password);
 
+            if (areSame) {
+                req.session.user = candidate;
+                req.session.isAuthenicated = true;
+                req.session.save(err => {
+                    if (err) {
+                        throw err
+                    } else {
+                        res.send(
+                            makeResponse('ok')
+                        );
+                    }
+                });
+            } else {
+                res.send(
+                    makeResponse('ok', 'Password is incorrect!')
+                );
+            }
+        } else {
+            res.send(
+                makeResponse('error', 'We could not find this user, user doesn\'t exist!')
+            );
+        }
+    } catch (e) {
+        console.log('Error app.post(/login)', e);
+    }
+});
+
+app.get('/logOut', auth, (req, res) => {
+    req.session.destroy(() => {
+        res.send(
+            makeResponse('ok')
+        );
+    });
+});
 
 // Reset and change password
 app.get('/reset', (req, res) => {
@@ -156,92 +230,6 @@ app.post('/password', async (req, res) => {
     }
 });
 
-
-app.post('/login', async (req, res) => {
-    try {
-        const {email, password} = req.body;
-        const candidate = await User.findOne({ email });
-
-        if (candidate) {
-            const areSame = await bcyrpt.compare(password, candidate.password);
-
-            if (areSame) {
-                req.session.user = candidate;
-                req.session.isAuthenicated = true;
-                req.session.save(err => {
-                    if (err) {
-                        throw err
-                    } else {
-                        res.send({
-                            status: 'ok',
-                            message: 'hello user'
-                        });
-                    }
-                });
-            } else {
-                res.send({
-                    status: 'Error',
-                    message: 'Password is incorrect.'
-                });
-            }
-        } else {
-            res.send({
-                status: 'Error',
-                message: 'We could not find this user, user doesn\'t exist.'
-            });
-        }
-
-    } catch (e) {
-        res.send({
-            status: 'Error',
-            message: e
-        });
-    }
-});
-
-app.get('/logOut', auth, (req, res) => {
-    req.session.destroy(() => {
-        res.send(
-            makeResponse('ok', 'user logout')
-        );
-    });
-});
-
-// Register
-app.post('/register', async (req, res) => {
-    try {
-        let {name, email, password, } = req.body;
-        const candidate = await User.findOne({ email });
-
-        if (candidate) {
-            res.send({
-                status: 'error',
-                message: 'User exist!'
-            });
-            return;
-        } else {
-            const hashPassword = await bcyrpt.hash(password, 10);
-            const user = new User({
-                name,
-                email,
-                password: hashPassword
-            });
-
-            await user.save();
-            res.send({
-                status: 'ok'
-            });
-            await transporter.sendMail(regEmail(email));
-        }
-
-    } catch (e) {
-        res.send({
-            status: 'error',
-            message: e
-        });
-    }
-});
-
 // Favorite news
 app.get('/favorite-news', auth, async (req, res) => {
    res.render('favorite-news', {
@@ -276,14 +264,14 @@ app.post('/addToFavorite', auth, async (req, res) => {
       await req.user.addToFavoriteNews(id);
       res.send({
          status: 'ok',
-         message: 'News added to favorite',
+         message: 'News added to favorite!',
          newsId: id
       })
    } catch (e) {
-      res.send({
-         status: 'error',
-         message: e
-      })
+      res.send(
+          makeResponse('error', e)
+      );
+      console.log('Error app.post(/addToFavorite)', e);
    }
 });
 
@@ -291,15 +279,12 @@ app.post('/removeFromFavorite', auth, async (req, res) => {
    try {
       await News.deleteOne({_id: req.body.id});
       await req.user.removeFromFavorite(req.body.id);
-      res.send({
-         status: 'ok',
-         message: 'News removed to favorite'
-      })
+      res.send(
+          makeResponse('ok', 'News removed from favorite!')
+      )
    } catch (e) {
-      res.send({
-         status: 'error',
-         message: e
-      })
+      res.send(makeResponse('error', e));
+       console.log('Error app.post(/removeFromFavorite)')
    }
 });
 

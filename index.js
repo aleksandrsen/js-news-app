@@ -39,7 +39,6 @@ const store = new MongoStore({
     uri: keys.MONGODB_URI
 });
 
-
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 app.use(session({
@@ -299,13 +298,14 @@ async function start() {
 }
 start();
 
-
 function makeResponse(status, message) {
     return {
         status,
         message
     }
 }
+
+
 
 
 

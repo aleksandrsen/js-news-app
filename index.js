@@ -23,7 +23,6 @@ const varMiddleware = require('./middleware/variables');
 const userMiddleware = require('./middleware/user');
 const auth = require('./middleware/auth');
 
-
 const transporter = nodemailer.createTransport(sendgrid({
     auth: {api_key: keys.SEND_GRID_APi_KEY}
 }));
@@ -39,6 +38,7 @@ const store = new MongoStore({
     collection: 'sessions',
     uri: keys.MONGODB_URI
 });
+
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
@@ -306,5 +306,8 @@ function makeResponse(status, message) {
         message
     }
 }
+
+
+
 
 

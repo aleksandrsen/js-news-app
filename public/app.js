@@ -141,6 +141,7 @@ class UI {
                             <img
                                 src="${idx < 9 ? urlToImage : 'img/lazy-grey.jpg'}"
                                 data-src="${urlToImage || 'img/img-error.jpg'}" alt="${title}"
+                                onerror="this.src = 'img/img-error.jpg'"
                             >
                             <h3 class="card-title">
                                ${title.length < 130 ? title : title.slice(0, 127) + '...'}
@@ -190,7 +191,7 @@ class UI {
 
             }, timeOut);
 
-            timeOut += 500;
+            timeOut += 300;
             this.timers.push(timerID);
         });
     }
@@ -914,8 +915,9 @@ function showCountryFlags(arr) {
             .then(url => {
                 let elem = document.querySelector(`.searching-list li[data-name="${name}"]`);
                 if(!elem) return;
-
                 ui.deleteSmallSpinner();
+                let oldImgOrSpan = elem.querySelector('img') || elem.querySelector('span.hint');
+                if (oldImgOrSpan) return;
 
                 if (url === 'notFoundFlag') {
                     elem.insertAdjacentHTML('beforeend', '<span class="hint">country</span>');
@@ -1205,8 +1207,8 @@ function toggleCardDescription(e) {
         const descriptionContent = description.querySelector('p.content');
         const descriptionHeader = description.querySelector('h3.title');
         closeDescriptionIcon.style.right = '20px';
-        descriptionContent.style.padding = '10px 30px';
-        descriptionHeader.style.padding = '10px 30px';
+        descriptionContent.style.padding = '10px 35px';
+        descriptionHeader.style.padding = '10px 35px';
     }
 }
 
@@ -1241,7 +1243,8 @@ async function logOutApp(e) {
 async function registerUser(e) {
     e.preventDefault();
     const target = e.target;
-    if(!target.closest('#register-form')) return;
+    if(!target.closest) return;
+    if(!(target.closest('#register-form'))) return;
     const registerForm = document.querySelector('#register-form');
     const name = registerForm.name;
     const email = registerForm.email;
@@ -1260,6 +1263,7 @@ async function registerUser(e) {
 async function resetPassword(e) {
     e.preventDefault();
     const target = e.target;
+    if(!target.closest) return;
     if(!target.closest('#reset-form')) return;
     const resetForm = document.querySelector('#reset-form');
     const email = resetForm.elements.email;
@@ -1280,6 +1284,7 @@ async function resetPassword(e) {
 async function changePassword(e) {
     e.preventDefault();
     const target = e.target;
+    if(!target.closest) return;
     if(!target.closest('#reset-password-form')) return;
     const resetPasswordForm = document.querySelector('#reset-password-form');
     const password = resetPasswordForm.password;
@@ -1354,9 +1359,13 @@ function showImages(e) {
                 };
             });
 
-            let id = setInterval(some, 2000);
+            let id = setInterval(changeImages, 2000);
 
-            function some() {
+            window.addEventListener("unload", function() {
+                clearInterval(id);
+            });
+
+            function changeImages() {
 
                 let numSrc = Math.floor(Math.random() * srcArr.length);
                 let numBlock = Math.floor(Math.random() * blocks.length);
@@ -1396,5 +1405,4 @@ function togglePassword(e) {
 
 
 // make emails message with styles
-// clean interval
-// 2 флага в поиске сверху
+// form validation

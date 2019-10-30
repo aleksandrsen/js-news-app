@@ -144,9 +144,7 @@ app.get('/logOut', auth, (req, res) => {
 
 // Reset and change password
 app.get('/reset', (req, res) => {
-    res.render('reset', {
-        title: 'Forgot password?'
-    });
+    res.render('reset', {});
 });
 
 app.post('/reset', (req, res) => {
@@ -168,9 +166,9 @@ app.post('/reset', (req, res) => {
                     makeResponse('ok', 'We send message to your email!')
                 );
             } else {
-                res.send(res.send(
+                res.send(
                     makeResponse('error', 'User with this email doesn\'t exist!')
-                ));
+                );
             }
         })
     } catch (e) {
@@ -190,7 +188,7 @@ app.get('/password/:token', async (req, res) => {
         });
 
         if (!user) {
-            console.log('Error - app.get(/password/:token)');
+            console.log('Error - app.get(/password/:token). Did\'nt find user');
         } else {
             res.render('password', {
                 userId: user._id.toString(),
@@ -216,14 +214,13 @@ app.post('/password', async (req, res) => {
             user.resetTokenExp = undefined;
             await user.save();
             res.send(
-                makeResponse('ok', 'Password changed!')
+                makeResponse('ok', 'Password was changed!')
             );
         } else {
             res.send(
                 makeResponse('error', 'Token lifetime expired!')
             );
         }
-
     } catch (e) {
         console.log('app.post(/password)', e);
     }

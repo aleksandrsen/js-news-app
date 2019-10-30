@@ -24,20 +24,14 @@
                         <!--/form-group-->
                         <div class="form-group">
                             <label for="sign-in-password">Password</label>
-                            <input type="password" class="form-control" id="sign-in-password" name="password" placeholder="Password">
+                            <div class="password-wrapper">
+                                <input type="password" class="form-control" id="sign-in-password" name="password" placeholder="Password">
+                                <i class="fas fa-eye"></i>
+                            </div>
                         </div>
                         <!--/form-group-->
                         <fieldset class="form-group">
-                            <div class="form-check">
-                                <div class="check-box-wrapper">
-                                    <input class="form-check-input" id="check-box-remember-me" type="checkbox" value="" checked="">
-                                    <label class="form-check-label" for="check-box-remember-me">
-                                        Remember me
-                                    </label>
-                                </div>
-                                <a href="/reset">Forgot password?</a>
-                            </div>
-                            <!--/form-check-->
+                            <a class="forgot-password-link" href="/reset">Forgot password?</a>
                         </fieldset>
                         <!--/form-group-->
                         <button type="submit" class="btn btn-primary submit-form-btn">Submit</button>
@@ -66,7 +60,10 @@
                         <!--/form-group-->
                         <div class="form-group">
                             <label for="register-password">Password</label>
-                            <input type="password" class="form-control" id="register-password" name="password" placeholder="Password">
+                            <div class="password-wrapper">
+                                <input type="password" class="form-control" id="register-password" name="password" placeholder="Password">
+                                <i class="fas fa-eye"></i>
+                            </div>
                         </div>
                         <!--/form-group-->
                         <button type="submit" class="btn btn-primary submit-form-btn">Submit</button>

@@ -773,6 +773,8 @@ window.addEventListener('load', e => {
 
 window.addEventListener('load', showFavoriteNews);
 
+window.addEventListener('load', showImages);
+
 // Lazy load event
 window.addEventListener('scroll', showVisible);
 
@@ -786,6 +788,8 @@ document.addEventListener('submit', registerUser);
 document.addEventListener('submit', resetPassword);
 
 document.addEventListener('submit', changePassword);
+
+document.addEventListener('click', togglePassword);
 
 // Header input field events
 document.addEventListener('input', displayMatches);
@@ -1213,8 +1217,8 @@ async function loginApp(e) {
     if(!document.querySelector('.navbar-nav .logIn.active')) return;
     if(!target.closest('#login-form')) return;
     const loginForm = document.querySelector('#login-form');
-    const email = loginForm.querySelector('#sign-in-email');
-    const password = loginForm.querySelector('#sign-in-password');
+    const email = loginForm.email;
+    const password = loginForm.password;
     const res = await auth.logIn(email.value, password.value);
     if (res.status === 'ok') {
         window.location.replace('/');
@@ -1239,15 +1243,15 @@ async function registerUser(e) {
     const target = e.target;
     if(!target.closest('#register-form')) return;
     const registerForm = document.querySelector('#register-form');
-    const name = registerForm.querySelector('#register-name');
-    const email = registerForm.querySelector('#register-email');
-    const password = registerForm.querySelector('#register-password');
+    const name = registerForm.name;
+    const email = registerForm.email;
+    const password = registerForm.password;
     const res = await auth.register(name.value, email.value, password.value);
 
     if (res.status === 'ok') {
         registerForm.reset();
-        window.location.replace('/login');
         ui.showAlert('Info', 'Success');
+        $('#home-tab').tab('show');
     } else {
         ui.showAlert('Warning', res.message);
     }
@@ -1258,13 +1262,16 @@ async function resetPassword(e) {
     const target = e.target;
     if(!target.closest('#reset-form')) return;
     const resetForm = document.querySelector('#reset-form');
-    const email = resetForm.querySelector('#reset-email');
+    const email = resetForm.elements.email;
     const res = await auth.resetPassword(email.value);
 
     if (res.status === 'ok') {
         resetForm.reset();
-        window.location.replace('/login');
+        email.blur();
         ui.showAlert('Success', res.message);
+        setTimeout(() => {
+            window.location.replace('/login');
+        }, 4500);
     } else {
         ui.showAlert('Warning', res.message);
     }
@@ -1275,34 +1282,119 @@ async function changePassword(e) {
     const target = e.target;
     if(!target.closest('#reset-password-form')) return;
     const resetPasswordForm = document.querySelector('#reset-password-form');
-    const password = resetPasswordForm.querySelector('#reset-password');
+    const password = resetPasswordForm.password;
     const userId = resetPasswordForm.querySelector('.btn.btn-primary').dataset.userId;
     const token = resetPasswordForm.querySelector('.btn.btn-primary').dataset.token;
-
-    console.log(userId, password.value, token);
 
     const res = await auth.changePassword(userId, password.value, token);
 
     if (res.status === 'ok') {
         resetPasswordForm.reset();
-        // window.location.replace('/login');
+        password.blur();
         ui.showAlert('Success', res.message);
+
+        setTimeout(() => {
+            window.location.replace('/login');
+        }, 4500);
     } else {
         ui.showAlert('Warning', res.message);
     }
 }
-// change alert
-// main with ukrainian news without auth, slider
+
+// show block with images on login page
+function showImages(e) {
+    const elem  = document.querySelector('.nav-item.active.logIn');
+    if (!elem) return;
+
+    Promise.all([
+        http.getNewsByCountry('ua', 'general'),
+        http.getNewsByResource('google-news'),
+        http.getNewsByResource('the-wall-street-journal')
+    ])
+        .then(data => {
+            let res = [];
+            data.forEach(resObj => {
+                res.push(...resObj.articles);
+            });
+
+            const wrapper = document.querySelector('.news-img-block');
+            const innerBlock = document.querySelector('.news-img-block-inner');
+            const headerHeight = document.querySelector('header').offsetHeight;
+            const clientWidth = document.documentElement.clientWidth;
+
+            wrapper.style.top = headerHeight + 'px';
+            wrapper.style.height = `calc(100vh - ${headerHeight}px)`;
+
+            let srcArr = res.map(item => {
+                return item.urlToImage;
+            });
+
+            let i = 1;
+            while (i > 0) {
+                let div = document.createElement('div');
+                div.className = 'img-wrapper';
+                let img = document.createElement('img');
+                div.appendChild(img);
+                innerBlock.insertAdjacentElement('beforeend', div);
+
+                let coords = div.getBoundingClientRect();
+                if (coords.left >= clientWidth) {
+                    div.remove();
+                    break;
+                }
+            }
+
+            let blocks = document.querySelectorAll('.news-img-block-inner img');
+            blocks.forEach((block, idx) => {
+                block.src = srcArr[idx];
+                block.classList.add('img-show');
+
+                block.onerror = function (e) {
+                    block.src = 'img/semantic.png';
+                };
+            });
+
+            let id = setInterval(some, 2000);
+
+            function some() {
+
+                let numSrc = Math.floor(Math.random() * srcArr.length);
+                let numBlock = Math.floor(Math.random() * blocks.length);
+
+                blocks[numBlock].classList.remove('img-show');
+
+                blocks[numBlock].addEventListener('transitionend', show);
+
+                function show () {
+                    blocks[numBlock].src = srcArr[numSrc];
+
+                    blocks[numBlock].addEventListener('load', helper);
+
+                    function helper() {
+                        blocks[numBlock].classList.add('img-show');
+                        blocks[numBlock].removeEventListener('transitionend', show);
+                        blocks[numBlock].removeEventListener('load', helper);
+                    }
+                }
+            }
+        })
+        .catch(e => console.log(e));
+}
+
+// toggle password input
+function togglePassword(e) {
+    let target = e.target;
+    if (!target.matches('.password-wrapper .fas.fa-eye')) return;
+    let wrapperBlock = target.closest('.password-wrapper');
+    let input = wrapperBlock.querySelector('input.form-control');
+    if (input.type === "password") {
+        input.type = "text";
+    } else {
+        input.type = "password";
+    }
+}
+
+
 // make emails message with styles
-// messages response and error messages
-// titles на разние страници
-
-
-
-
-
-
-
-
-
-
+// clean interval
+// 2 флага в поиске сверху

@@ -322,19 +322,22 @@ class UI {
 }
 
 class Auth {
-    constructor() {
-    }
+    constructor() {}
 
-    async logIn(email, password) {
-        let response = await fetch('/login', {
+    static async postTemplate(url, data) {
+        let response = await fetch(`${url}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json;charset=utf-8'
             },
-            body: JSON.stringify({email, password})
+            body: JSON.stringify(data)
         });
-        let res = await response.json();
+        let res = response.json();
         return res;
+    }
+
+    async logIn(email, password) {
+        return Auth.postTemplate('/login', {email, password});
     }
 
     async logOut() {
@@ -344,43 +347,15 @@ class Auth {
     }
 
     async register(name, email, password) {
-        let response = await fetch('/register', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json;charset=utf-8'
-            },
-            body: JSON.stringify({name, email, password})
-        });
-        let res = await response.json();
-        return res;
+        return Auth.postTemplate('/register', {name, email, password});
     }
 
     async resetPassword(email) {
-        let response = await fetch('/reset', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json;charset=utf-8'
-            },
-            body: JSON.stringify({email})
-        });
-        let res = await response.json();
-        return res;
+        return Auth.postTemplate('/reset', {email});
     }
 
     async changePassword(userId, password, token) {
-        let response = await fetch('/password', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json;charset=utf-8'
-            },
-            body: JSON.stringify({
-                userId,
-                password,
-                token
-            })
-        });
-        let res = await response.json();
-        return res;
+        return Auth.postTemplate('/password', {userId, password, token});
     }
 }
 
@@ -885,12 +860,11 @@ window.addEventListener('load', e => {
         selectedValue: 'national-geographic',
         selectedText: 'Choose news resource'
     });
-    // searchNewsByCountry(e);
 });
 
 window.addEventListener('load', showFavoriteNews);
 
-// window.addEventListener('load', showImages);
+window.addEventListener('load', showImages);
 
 // Lazy load event
 window.addEventListener('scroll', showVisible);
@@ -1534,6 +1508,8 @@ function togglePassword(e) {
 
 // make emails message with styles
 // const and check all code
+// styles for forms, chang password form
+// add readme md file
 
 
 

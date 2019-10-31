@@ -31,4 +31,3 @@ userSchema.methods.removeFromFavorite = function (newsId) {
 };
 
 module.exports = model('User', userSchema);
-

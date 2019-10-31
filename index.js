@@ -26,9 +26,10 @@ const auth = require('./middleware/auth');
 const transporter = nodemailer.createTransport(sendgrid({
     auth: {api_key: keys.SEND_GRID_APi_KEY}
 }));
+
 const hbs = exphbs.create({
-   defaultLayout: 'main',
-   extname: 'hbs'
+    defaultLayout: 'main',
+    extname: 'hbs'
 });
 app.engine('hbs', hbs.engine);
 app.set('view engine', 'hbs');
@@ -42,10 +43,10 @@ const store = new MongoStore({
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 app.use(session({
-   secret: keys.SESSION_SECRET,
-   resave: false,
-   saveUninitialized: false,
-   store
+    secret: keys.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    store
 }));
 app.use(helmet());
 app.use(compression());
@@ -54,18 +55,18 @@ app.use(userMiddleware);
 
 // Main
 app.get('/', auth, (req, res) => {
-   res.render('index', {
-      isHome: true,
-      isSearchNews: true,
-      isModal: true
-   });
+    res.render('index', {
+        isHome: true,
+        isSearchNews: true,
+        isModal: true
+    });
 });
 
 // Register
 app.post('/register', async (req, res) => {
     try {
-        let {name, email, password, } = req.body;
-        const candidate = await User.findOne({ email });
+        let {name, email, password,} = req.body;
+        const candidate = await User.findOne({email});
 
         if (candidate) {
             res.send(
@@ -83,7 +84,7 @@ app.post('/register', async (req, res) => {
             await user.save();
             res.send(
                 makeResponse('ok')
-             );
+            );
             await transporter.sendMail(regEmail(email));
         }
 
@@ -94,15 +95,15 @@ app.post('/register', async (req, res) => {
 
 // login and logOut
 app.get('/login', (req, res) => {
-   res.render('login', {
-      isLogin: true
-   });
+    res.render('login', {
+        isLogin: true
+    });
 });
 
 app.post('/login', async (req, res) => {
     try {
         const {email, password} = req.body;
-        const candidate = await User.findOne({ email });
+        const candidate = await User.findOne({email});
 
         if (candidate) {
             const areSame = await bcyrpt.compare(password, candidate.password);
@@ -121,7 +122,7 @@ app.post('/login', async (req, res) => {
                 });
             } else {
                 res.send(
-                    makeResponse('ok', 'Password is incorrect!')
+                    makeResponse('Error', 'Password is incorrect!')
                 );
             }
         } else {
@@ -209,7 +210,7 @@ app.post('/password', async (req, res) => {
         });
 
         if (user) {
-            user.password = await  bcyrpt.hash(req.body.password, 10);
+            user.password = await bcyrpt.hash(req.body.password, 10);
             user.resetToken = undefined;
             user.resetTokenExp = undefined;
             await user.save();
@@ -228,71 +229,72 @@ app.post('/password', async (req, res) => {
 
 // Favorite news
 app.get('/favorite-news', auth, async (req, res) => {
-   res.render('favorite-news', {
-      isFavorite: true
-   });
+    res.render('favorite-news', {
+        isFavorite: true
+    });
 });
 
 app.get('/get-favorite-news', auth, async (req, res) => {
-   const user = await req.user
-       .populate('favoriteNews')
-       .execPopulate();
+    const user = await req.user
+        .populate('favoriteNews')
+        .execPopulate();
 
-   res.send(user.favoriteNews);
+    res.send(user.favoriteNews);
 });
 
 app.post('/addToFavorite', auth, async (req, res) => {
-   const {title, author, source, content, description, publishedAt, url, urlToImage} = req.body;
-   const news = new News({
-      title: title,
-      author: author,
-      source: source,
-      content: content,
-      description: description,
-      publishedAt: publishedAt,
-      url: url,
-      urlToImage: urlToImage,
-      userId: req.user._id
-   });
-   try {
-      await news.save();
-      const id = news.id;
-      await req.user.addToFavoriteNews(id);
-      res.send({
-         status: 'ok',
-         message: 'News added to favorite!',
-         newsId: id
-      })
-   } catch (e) {
-      res.send(
-          makeResponse('error', e)
-      );
-      console.log('Error app.post(/addToFavorite)', e);
-   }
+    const {title, author, source, content, description, publishedAt, url, urlToImage} = req.body;
+    const news = new News({
+        title: title,
+        author: author,
+        source: source,
+        content: content,
+        description: description,
+        publishedAt: publishedAt,
+        url: url,
+        urlToImage: urlToImage,
+        userId: req.user._id
+    });
+    try {
+        await news.save();
+        const id = news.id;
+        await req.user.addToFavoriteNews(id);
+        res.send({
+            status: 'ok',
+            message: 'News added to favorite!',
+            newsId: id
+        })
+    } catch (e) {
+        res.send(
+            makeResponse('error', e)
+        );
+        console.log('Error app.post(/addToFavorite)', e);
+    }
 });
 
 app.post('/removeFromFavorite', auth, async (req, res) => {
-   try {
-      await News.deleteOne({_id: req.body.id});
-      await req.user.removeFromFavorite(req.body.id);
-      res.send(
-          makeResponse('ok', 'News removed from favorite!')
-      )
-   } catch (e) {
-      res.send(makeResponse('error', e));
-       console.log('Error app.post(/removeFromFavorite)')
-   }
+    try {
+        await News.deleteOne({_id: req.body.id});
+        await req.user.removeFromFavorite(req.body.id);
+        res.send(
+            makeResponse('ok', 'News removed from favorite!')
+        )
+    } catch (e) {
+        res.send(makeResponse('error', e));
+        console.log('Error app.post(/removeFromFavorite)')
+    }
 });
 
 // Start
 async function start() {
-   await mongoose.connect(keys.MONGODB_URI, {useNewUrlParser: true, useUnifiedTopology: true });
-   const PORT = process.env.PORT || 3000;
+    await mongoose.connect(keys.MONGODB_URI, {useNewUrlParser: true, useUnifiedTopology: true});
+    const PORT = process.env.PORT || 3000;
 
-   app.listen(PORT, () => {
-      console.log(`Server is running on ${PORT}`);
-   });
+    app.listen(PORT, () => {
+        console.log(`Server is running on ${PORT}`);
+    });
 }
+
 start();
 
 function makeResponse(status, message) {
@@ -301,10 +303,3 @@ function makeResponse(status, message) {
         message
     }
 }
-
-
-
-
-
-
-

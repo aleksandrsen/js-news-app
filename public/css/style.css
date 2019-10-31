@@ -8,6 +8,7 @@
     color: #00A388;
 }
 
+/*Header start*/
 header {
     position: absolute;
     width: 100%;
@@ -107,7 +108,9 @@ header .searching-list li:last-child {
 header .searching-list li.active .hint {
     color: #fff;
 }
+/*Header end*/
 
+/*Main modal window start*/
 .show-modal-wrapper {
     position: fixed;
     top: 30%;
@@ -186,9 +189,16 @@ header .searching-list li.active .hint {
 .modal .category {
     margin-top: 10px;
 }
+/*Main modal window end*/
 
+/*Main block start*/
 main {
     padding-top: 105px;
+}
+
+.row.news-container {
+    position: relative;
+    z-index: 100;
 }
 
 .news-container .col-4 {
@@ -372,7 +382,9 @@ main {
 .show-description .card-body {
     transform: translate(0, 100%);
 }
+/*Main block end*/
 
+/*Alert start*/
 .alert {
     max-width: 330px;
     min-width: 250px;
@@ -405,7 +417,9 @@ main {
     font-size: 16px;
     margin-bottom: 0;
 }
+/*Alert end*/
 
+/*Tabs login page start*/
 .nav.nav-tabs,
 .tab-content {
     max-width: 450px;
@@ -463,7 +477,39 @@ main {
     border-radius: 0 0 10px 10px;
     background-color: #67510ce8;
 }
+/*Style for placeholders start*/
+form input.form-control::placeholder {
+    transition: 1s;
+}
 
+form input.form-control:focus::placeholder {
+    opacity: 0;
+    transition: .4s;
+}
+/*Style for placeholders end*/
+
+/*Style for eye btn start*/
+.password-wrapper {
+    position: relative;
+}
+
+.password-wrapper .fas.fa-eye {
+    position: absolute;
+    color: black;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    cursor: pointer;
+    padding: 3px 0;
+}
+
+.password-wrapper input.form-control {
+    padding-right: 35px;
+}
+/*Style for eye btn end*/
+
+
+/*Login form start*/
 #login-form fieldset {
     margin-bottom: 0;
 }
@@ -481,9 +527,9 @@ main {
 .tab-content .submit-form-btn {
     padding: 7px 25px;
 }
+/*Login form end*/
 
-
-/* reset form  */
+/*Reset form start*/
 .card.reset-form {
     border: none;
 }
@@ -507,8 +553,22 @@ main {
     padding: 6px 20px;
     font-size: 18px;
 }
+/*Reset form end*/
 
-/*styles for block with images on login page*/
+.tab-content .btn[type="submit"] {
+    margin-top: 15px;
+}
+
+.form-group {
+    position: relative;
+}
+
+form input.form-control:focus {
+    border-color: #caff00;
+}
+/*Tabs login page start*/
+
+/*Styles for block with images on login page start*/
 .news-img-block {
     position: absolute;
     left: 0;
@@ -549,60 +609,4 @@ main {
 .news-img-block-inner img[src="img-error.jpg"] {
     min-width: 300px;
 }
-
-.row.news-container {
-    position: relative;
-    z-index: 100;
-}
-
-
-.tab-content .btn[type="submit"] {
-    margin-top: 15px;
-}
-
-.form-group {
-    position: relative;
-}
-
-form input.form-control:focus {
-    border-color: #caff00;
-}
-
-
-/*style for placeholders*/
-form input.form-control::placeholder {
-    transition: 1s;
-}
-
-form input.form-control:focus::placeholder {
-    opacity: 0;
-    transition: .4s;
-}
-
-
-.password-wrapper {
-    position: relative;
-}
-
-.password-wrapper .fas.fa-eye {
-    position: absolute;
-    color: black;
-    top: 50%;
-    right: 10px;
-    transform: translateY(-50%);
-    cursor: pointer;
-    padding: 3px 0;
-}
-
-.password-wrapper input.form-control {
-    padding-right: 35px;
-}
-
-
-
-
-
-
-
-
-
+/*Styles for block with images on login page end*/

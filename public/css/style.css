@@ -556,6 +556,19 @@ main {
 }
 
 
+.tab-content .btn[type="submit"] {
+    margin-top: 15px;
+}
+
+.form-group {
+    position: relative;
+}
+
+form input.form-control:focus {
+    border-color: #caff00;
+}
+
+
 /*style for placeholders*/
 form input.form-control::placeholder {
     transition: 1s;
@@ -565,6 +578,7 @@ form input.form-control:focus::placeholder {
     opacity: 0;
     transition: .4s;
 }
+
 
 .password-wrapper {
     position: relative;

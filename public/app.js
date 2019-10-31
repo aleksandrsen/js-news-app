@@ -45,7 +45,8 @@ class Http {
 }
 
 class DB {
-    constructor() {};
+    constructor() {
+    };
 
     static async postTemplate(url, data) {
         let response = await fetch(`/${url}`, {
@@ -109,7 +110,7 @@ class UI {
             document.body.style.overflowY = 'scroll';
             setTimeout(() => {
                 document.body.style.overflowY = 'auto';
-            }, 1500)
+            }, 1200)
         } else if (news.length > 3) {
             document.body.style.overflowY = 'scroll';
         }
@@ -315,13 +316,14 @@ class UI {
 
     deleteSmallSpinner() {
         const smallSpinner = document.querySelector('header .searching-list .lds-css');
-        if(!smallSpinner) return;
+        if (!smallSpinner) return;
         smallSpinner.remove();
     }
 }
 
 class Auth {
-    constructor() {}
+    constructor() {
+    }
 
     async logIn(email, password) {
         let response = await fetch('/login', {
@@ -382,11 +384,125 @@ class Auth {
     }
 }
 
+class formValidator {
+    constructor () {
+        this.result = [];
+    }
+
+    checkFields(obj) {
+        this.result = [];
+
+        for (let name in obj) {
+            let val = obj[name];
+            // if we check a lot of field with one type
+            if (Array.isArray(val)) {
+                let arr = val;
+
+                arr.forEach(item => {
+                    this.result.push(this[name](item));
+                })
+
+            } else {
+                // if we check one field with this type
+                this.result.push(this[name](val));
+            }
+        }
+
+        return this.checkResult();
+    }
+
+    checkResult() {
+        let i = 0;
+        this.result.forEach(item => {
+            if (item) i++;
+        });
+
+        if (i === this.result.length) {
+            return true;
+        }
+        return false;
+    }
+
+    text(elem) {
+        let value = elem.value;
+        if (value.length === 0) {
+            this.showValidateError(elem, 'This field must be fill!');
+            return false;
+        } else if (value.length < 3) {
+            this.showValidateError(elem, 'Name should have at least 3 characters!');
+            return false;
+        }
+        this.removeValidateError(elem);
+        return true;
+    }
+
+    email(elem) {
+        let value = elem.value;
+        let regExp = new RegExp('[-.\\w]+@([\\w-]+\\.)+[\\w-]', 'g');
+        let res = value.match(regExp);
+        if (value.length === 0) {
+            this.showValidateError(elem, 'This field must be fill!');
+            return false;
+        } else if (!res) {
+            this.showValidateError(elem, 'Please type correct email!');
+            return false;
+        }
+        this.removeValidateError(elem);
+        return true;
+    }
+
+    password(elem) {
+        let value = elem.value;
+        if (value.length === 0) {
+            this.showValidateError(elem, 'This field must be fill!');
+            return false;
+        } else if (value.length < 6) {
+            this.showValidateError(elem, 'Password should have at least 6 characters!');
+            return false;
+        }
+        this.removeValidateError(elem);
+        return true;
+    }
+
+    showValidateError(elem, message) {
+        // delete old error message
+        this.removeValidateError(elem);
+
+        // add new error message
+        let formGroup = elem.closest('.form-group');
+        let span = document.createElement('span');
+
+        elem.style.borderColor = 'red';
+        span.className = 'validate-error';
+        span.textContent = message;
+        span.style.cssText = `
+             position: absolute;
+             top: 100%;
+             left: 0;
+             color: #ff9900;
+             font-size: 13px;
+             font-style: italic;
+             line-height: 1.4em;
+             z-index: 101;
+            `;
+
+        formGroup.appendChild(span);
+    }
+
+    removeValidateError(elem) {
+        let validateErrorElem = elem.closest('.form-group').querySelector('.validate-error');
+        if (!validateErrorElem) return;
+        elem.style.borderColor = '#caff00';
+        validateErrorElem.remove();
+    }
+}
+
 // Init classes
 const http = new Http();
 const db = new DB();
 const ui = new UI('.row.news-container');
 const auth = new Auth();
+const validateForm = new formValidator();
 
 // Global variables
 let currentNews;
@@ -750,7 +866,7 @@ const closeModalBtn = $('.close-icon-modal');
 // Load page events
 window.addEventListener('load', e => {
     let isMainPage = document.querySelector('.navbar-nav .active.main');
-    if(!isMainPage) return;
+    if (!isMainPage) return;
     makeList({
         arr: countriesArr,
         selector: '#country',
@@ -774,7 +890,7 @@ window.addEventListener('load', e => {
 
 window.addEventListener('load', showFavoriteNews);
 
-window.addEventListener('load', showImages);
+// window.addEventListener('load', showImages);
 
 // Lazy load event
 window.addEventListener('scroll', showVisible);
@@ -825,7 +941,7 @@ newsContainer.addEventListener('click', toggleCardDescription);
 // Show and check favorite news
 async function showFavoriteNews(e) {
     const isFavoriteNewsActive = document.querySelector(('.navbar-nav .favorite-news.active'));
-    if(!isFavoriteNewsActive) return;
+    if (!isFavoriteNewsActive) return;
     try {
         ui.showSpinner();
         const favoriteNews = await db.getFavoriteNewsFromDb();
@@ -843,7 +959,7 @@ async function showFavoriteNews(e) {
 }
 
 async function checkFavoriteNews(length) {
-    let time = length * 500 + 5000;
+    let time = length * 300 + 5000;
 
     let timerId = setInterval(async () => {
         try {
@@ -852,7 +968,7 @@ async function checkFavoriteNews(length) {
             titles.forEach(title => {
                 let text = title.textContent;
                 favoriteNews.forEach(favoriteNewsItem => {
-                    if(favoriteNewsItem.title === text) {
+                    if (favoriteNewsItem.title === text) {
                         let heart = title.closest('.card').querySelector('.fa-heart');
                         heart.classList.replace('far', 'fas');
                         heart.setAttribute('data-base-Id', favoriteNewsItem._id);
@@ -870,10 +986,10 @@ async function checkFavoriteNews(length) {
 // Header form handlers
 function closeSearchingList(e) {
     const target = e.target;
-    if(target.closest('.searching-list') || target.closest('.search-news-form .btn.btn-secondary')) return;
-    const searchingList  = document.querySelector('.searching-list');
+    if (target.closest('.searching-list') || target.closest('.search-news-form .btn.btn-secondary')) return;
+    const searchingList = document.querySelector('.searching-list');
     const searchingInput = document.querySelector('header input.form-control');
-    if(!searchingList) return;
+    if (!searchingList) return;
     searchingInput.value = '';
     searchingList.innerHTML = '';
 }
@@ -887,7 +1003,7 @@ function findMatches(wordToMatch, arr) {
 
 function displayMatches(e) {
     let target = e.target;
-    if(!target.closest('header input.form-control')) return;
+    if (!target.closest('header input.form-control')) return;
 
     const input = document.querySelector('header input.form-control');
     const searchingList = document.querySelector('header .searching-list');
@@ -914,7 +1030,7 @@ function showCountryFlags(arr) {
         http.getFlag(name)
             .then(url => {
                 let elem = document.querySelector(`.searching-list li[data-name="${name}"]`);
-                if(!elem) return;
+                if (!elem) return;
                 ui.deleteSmallSpinner();
                 let oldImgOrSpan = elem.querySelector('img') || elem.querySelector('span.hint');
                 if (oldImgOrSpan) return;
@@ -931,12 +1047,12 @@ function showCountryFlags(arr) {
 
 function searching(e) {
     let target = e.target;
-    if(!target.closest('header input.form-control')) return;
+    if (!target.closest('header input.form-control')) return;
     const searchingInput = document.querySelector('header input.form-control');
     const searchNewsForm = document.querySelector('header .search-news-form');
 
     let lis = document.querySelectorAll('.searching-list li');
-    if(!lis[0]) return;
+    if (!lis[0]) return;
     let i = 0;
     let max = lis.length;
 
@@ -945,7 +1061,7 @@ function searching(e) {
     lis.forEach(li => {
         li.addEventListener('mouseenter', e => {
             let target = e.target;
-            for(let j = 0; j < lis.length; j++) {
+            for (let j = 0; j < lis.length; j++) {
                 lis[j].classList.remove('active');
             }
             target.classList.add('active');
@@ -985,7 +1101,7 @@ function searching(e) {
 
 function setSearchingListValue(e) {
     let target = e.target;
-    if(!(target.closest('header input.form-control') || target.closest('header .searching-list li'))) return;
+    if (!(target.closest('header input.form-control') || target.closest('header .searching-list li'))) return;
     let active = document.querySelector('.searching-list li.active');
     const searchingInput = document.querySelector('header input.form-control'); // header
     if (active) {
@@ -1006,7 +1122,7 @@ function searchNewsByRequest(e) {
         return;
     }
 
-    if(!target.closest('header .search-news-form')) return;
+    if (!target.closest('header .search-news-form')) return;
 
     find();
 
@@ -1068,7 +1184,7 @@ function searchHelper(e, func, ...args) {
 
 function searchNewsByCountry(e) {
     const target = e.target;
-    if(!target.closest('#country-form')) return;
+    if (!target.closest('#country-form')) return;
     const countryForm = document.querySelector('#country-form');
     const countryValue = countryForm.querySelector('#country').value;
     const categoryValue = countryForm.querySelector('#category').value;
@@ -1078,7 +1194,7 @@ function searchNewsByCountry(e) {
 
 function searchNewsByNewsResource(e) {
     const target = e.target;
-    if(!target.closest('#source-form')) return;
+    if (!target.closest('#source-form')) return;
     const newsSourceForm = document.querySelector('#source-form');
     const newsSourceValue = newsSourceForm.querySelector('#resource').value;
     searchHelper(e, http.getNewsByResource, newsSourceValue);
@@ -1147,7 +1263,7 @@ function toggleFavorite(e) {
     }
 
     function addToFavorite(data) {
-        if(data.status === 'ok') {
+        if (data.status === 'ok') {
             target.classList.replace('far', 'fas');
             ui.showAlert('Success', 'News added to favorite!');
             target.setAttribute('data-base-Id', data.newsId);
@@ -1157,12 +1273,12 @@ function toggleFavorite(e) {
     }
 
     function removeFromFavorite(data) {
-        if(data.status === 'ok') {
+        if (data.status === 'ok') {
             target.classList.replace('fas', 'far');
 
             let activeNavLink = document.querySelector('.navbar-nav .favorite-news');
 
-            if(activeNavLink.classList.contains('active')) {
+            if (activeNavLink.classList.contains('active')) {
                 target.closest('.col-4').remove();
             }
             ui.showAlert('Info', '<span>News removed from favorite!</span>');
@@ -1176,7 +1292,7 @@ function toggleFavorite(e) {
 function toggleCardDescription(e) {
     const target = e.target;
     const card = target.closest('.col-4 .card');
-    if(!card) return;
+    if (!card) return;
 
     const readMore = card.querySelector('.left .read-more');
     const closeDescriptionIcon = card.querySelector('.close-description-icon');
@@ -1216,12 +1332,16 @@ function toggleCardDescription(e) {
 async function loginApp(e) {
     e.preventDefault();
     const target = e.target;
-    if(!document.querySelector('.navbar-nav .logIn.active')) return;
-    if(!target.closest('#login-form')) return;
+    if (!document.querySelector('.navbar-nav .logIn.active')) return;
+    if (!target.closest('#login-form')) return;
     const loginForm = document.querySelector('#login-form');
     const email = loginForm.email;
     const password = loginForm.password;
+
+    if (!validateForm.checkFields({email: email, password: [password]})) return;
+
     const res = await auth.logIn(email.value, password.value);
+
     if (res.status === 'ok') {
         window.location.replace('/');
     } else {
@@ -1231,7 +1351,7 @@ async function loginApp(e) {
 
 async function logOutApp(e) {
     const target = e.target;
-    if(!target.closest('.navbar-nav .logOut')) return;
+    if (!target.closest('.navbar-nav .logOut')) return;
     const res = await auth.logOut();
     if (res.status === 'ok') {
         window.location.replace('/login');
@@ -1243,12 +1363,15 @@ async function logOutApp(e) {
 async function registerUser(e) {
     e.preventDefault();
     const target = e.target;
-    if(!target.closest) return;
-    if(!(target.closest('#register-form'))) return;
+    if (!target.closest) return;
+    if (!(target.closest('#register-form'))) return;
     const registerForm = document.querySelector('#register-form');
     const name = registerForm.name;
     const email = registerForm.email;
     const password = registerForm.password;
+
+    if (!validateForm.checkFields({text: name, email: email, password: password})) return;
+
     const res = await auth.register(name.value, email.value, password.value);
 
     if (res.status === 'ok') {
@@ -1263,10 +1386,13 @@ async function registerUser(e) {
 async function resetPassword(e) {
     e.preventDefault();
     const target = e.target;
-    if(!target.closest) return;
-    if(!target.closest('#reset-form')) return;
+    if (!target.closest) return;
+    if (!target.closest('#reset-form')) return;
     const resetForm = document.querySelector('#reset-form');
-    const email = resetForm.elements.email;
+    const email = resetForm.email;
+
+    if(!validateForm.checkFields({email: email})) return;
+
     const res = await auth.resetPassword(email.value);
 
     if (res.status === 'ok') {
@@ -1284,12 +1410,14 @@ async function resetPassword(e) {
 async function changePassword(e) {
     e.preventDefault();
     const target = e.target;
-    if(!target.closest) return;
-    if(!target.closest('#reset-password-form')) return;
+    if (!target.closest) return;
+    if (!target.closest('#reset-password-form')) return;
     const resetPasswordForm = document.querySelector('#reset-password-form');
     const password = resetPasswordForm.password;
     const userId = resetPasswordForm.querySelector('.btn.btn-primary').dataset.userId;
     const token = resetPasswordForm.querySelector('.btn.btn-primary').dataset.token;
+
+    if(!validateForm.checkFields({password: password})) return;
 
     const res = await auth.changePassword(userId, password.value, token);
 
@@ -1308,7 +1436,7 @@ async function changePassword(e) {
 
 // show block with images on login page
 function showImages(e) {
-    const elem  = document.querySelector('.nav-item.active.logIn');
+    const elem = document.querySelector('.nav-item.active.logIn');
     if (!elem) return;
 
     Promise.all([
@@ -1361,7 +1489,7 @@ function showImages(e) {
 
             let id = setInterval(changeImages, 2000);
 
-            window.addEventListener("unload", function() {
+            window.addEventListener("unload", function () {
                 clearInterval(id);
             });
 
@@ -1374,7 +1502,7 @@ function showImages(e) {
 
                 blocks[numBlock].addEventListener('transitionend', show);
 
-                function show () {
+                function show() {
                     blocks[numBlock].src = srcArr[numSrc];
 
                     blocks[numBlock].addEventListener('load', helper);
@@ -1405,4 +1533,14 @@ function togglePassword(e) {
 
 
 // make emails message with styles
-// form validation
+// const and check all code
+
+
+
+
+
+
+
+
+
+

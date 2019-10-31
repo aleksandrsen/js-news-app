@@ -16,7 +16,7 @@
         <div class="tab-pane fade show active" id="sign-in" role="tabpanel" aria-labelledby="home-tab">
             <div class="card sign-in-form text-white bg-primary">
                 <div class="card-body">
-                    <form action="" id="login-form">
+                    <form action="" id="login-form" novalidate>
                         <div class="form-group">
                             <label for="sign-in-email">Email address</label>
                             <input type="email"
@@ -59,7 +59,7 @@
         <div class="tab-pane fade" id="register" role="tabpanel" aria-labelledby="profile-tab">
             <div class="card sign-in-form text-white bg-primary">
                 <div class="card-body">
-                    <form action="" id="register-form">
+                    <form action="" id="register-form" novalidate>
                         <div class="form-group">
                             <label for="register-name">Name</label>
                             <input type="text" class="form-control" id="register-name" name="name" aria-describedby="emailHelp" placeholder="Enter name">
@@ -67,8 +67,7 @@
                         <!--/form-group-->
                         <div class="form-group">
                             <label for="register-email">Email address</label>
-                            <input type="email" class="form-control" id="register-email" name="email" aria-describedby="emailHelp" placeholder="Enter email">
-                            <small id="sign-up-email-help" class="form-text text-muted">We'll never share your email with anyone else.</small>
+                            <input type="email" class="form-control" id="register-email" name="email" placeholder="Enter email">
                         </div>
                         <!--/form-group-->
                         <div class="form-group">

@@ -1506,17 +1506,7 @@ function togglePassword(e) {
 }
 
 
-// make emails message with styles
+
 // const and check all code
 // styles for forms, chang password form
 // add readme md file
-
-
-
-
-
-
-
-
-
-

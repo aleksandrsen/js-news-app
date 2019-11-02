@@ -322,7 +322,8 @@ class UI {
 }
 
 class Auth {
-    constructor() {}
+    constructor() {
+    }
 
     static async postTemplate(url, data) {
         let response = await fetch(`${url}`, {
@@ -360,7 +361,7 @@ class Auth {
 }
 
 class formValidator {
-    constructor () {
+    constructor() {
         this.result = [];
     }
 
@@ -447,7 +448,7 @@ class formValidator {
         let formGroup = elem.closest('.form-group');
         let span = document.createElement('span');
 
-        elem.style.borderColor = 'red';
+        elem.style.borderColor = '#e2591b';
         span.className = 'validate-error';
         span.textContent = message;
         span.style.cssText = `
@@ -1302,7 +1303,7 @@ function toggleCardDescription(e) {
     }
 }
 
-// login, register, reset handlers
+// login, register, reset, change handlers
 async function loginApp(e) {
     e.preventDefault();
     const target = e.target;
@@ -1365,7 +1366,7 @@ async function resetPassword(e) {
     const resetForm = document.querySelector('#reset-form');
     const email = resetForm.email;
 
-    if(!validateForm.checkFields({email: email})) return;
+    if (!validateForm.checkFields({email: email})) return;
 
     const res = await auth.resetPassword(email.value);
 
@@ -1391,7 +1392,7 @@ async function changePassword(e) {
     const userId = resetPasswordForm.querySelector('.btn.btn-primary').dataset.userId;
     const token = resetPasswordForm.querySelector('.btn.btn-primary').dataset.token;
 
-    if(!validateForm.checkFields({password: password})) return;
+    if (!validateForm.checkFields({password: password})) return;
 
     const res = await auth.changePassword(userId, password.value, token);
 
@@ -1453,6 +1454,10 @@ function showImages(e) {
 
             let blocks = document.querySelectorAll('.news-img-block-inner img');
             blocks.forEach((block, idx) => {
+                if (srcArr[idx] === 'null' || srcArr[idx] === '' || srcArr[idx] === 'undefined') {
+                    block.src = 'img/semantic.png';
+                }
+
                 block.src = srcArr[idx];
                 block.classList.add('img-show');
 
@@ -1504,9 +1509,3 @@ function togglePassword(e) {
         input.type = "password";
     }
 }
-
-
-
-// const and check all code
-// styles for forms, chang password form
-// add readme md file

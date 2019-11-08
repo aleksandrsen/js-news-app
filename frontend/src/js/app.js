@@ -1,83 +1,18 @@
-class Http {
-    constructor() {
-        this.apiKey = 'b09139bfceb545c4a56068e424f433a7';
-    }
-
-    static getNewsBy(url) {
-        return new Promise(((resolve, reject) => {
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'ok') {
-                        resolve(data);
-                    } else {
-                        reject(data.message)
-                    }
-                })
-                .catch(err => reject(err));
-        }));
-    }
-
-    getNewsByCountry(countryCode, category) {
-        return Http.getNewsBy(`https://newsapi.org/v2/top-headlines?country=${countryCode}&category=${category || 'general'}&pageSize=100&apiKey=${this.apiKey}`);
-    }
-
-    getNewsByResource(resourceCode) {
-        return Http.getNewsBy(`https://newsapi.org/v2/top-headlines?sources=${resourceCode}&apiKey=${this.apiKey}`);
-    }
-
-    getNewsByQuery(query) {
-        return Http.getNewsBy(`https://newsapi.org/v2/everything?q=${query}&apiKey=${this.apiKey}`);
-    }
-
-    async getFlag(country) {
-        let resUrl;
-        let data = await fetch('https://restcountries.eu/rest/v2/all');
-        let countries = await data.json();
-
-        let res = countries.forEach(countryItem => {
-            if (country.toLowerCase() === countryItem.name.toLowerCase()) {
-                resUrl = countryItem.flag;
-            }
-        });
-        return resUrl || 'notFoundFlag';
-    }
-}
-
-class DB {
-    constructor() {
-    };
-
-    static async postTemplate(url, data) {
-        let response = await fetch(`/${url}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json;charset=utf-8'
-            },
-            body: JSON.stringify(data)
-        });
-        let res = response.json();
-        return res;
-    }
-
-    async addToFavoriteToDb(newsItem) {
-        return DB.postTemplate('addToFavorite', newsItem);
-    }
-
-    async removeFromFavoriteFromDb(id) {
-        return DB.postTemplate('removeFromFavorite', {id});
-    }
-
-    async getFavoriteNewsFromDb() {
-        let response = await fetch('/get-favorite-news');
-        let res = await response.json();
-        return res;
-    };
-}
+// Styles
+import '../css/bootstrap-solar-theme.min.css';
+import '../css/spinner.css';
+import '../css/small-spinner.css';
+import '../css/style.css';
+// Modules
+import Http from './http';
+import DB from './db';
+// import UI from './ui';
+import Auth from './auth';
+import formValidator from './formValidator';
 
 class UI {
-    constructor(selector) {
-        this.newsContainer = document.querySelector(selector);
+    constructor() {
+        this.newsContainer = document.querySelector('.row.news-container');
         this.timers = [];
     }
 
@@ -321,162 +256,10 @@ class UI {
     }
 }
 
-class Auth {
-    constructor() {
-    }
-
-    static async postTemplate(url, data) {
-        let response = await fetch(`${url}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json;charset=utf-8'
-            },
-            body: JSON.stringify(data)
-        });
-        let res = response.json();
-        return res;
-    }
-
-    async logIn(email, password) {
-        return Auth.postTemplate('/login', {email, password});
-    }
-
-    async logOut() {
-        let response = await fetch('/logOut');
-        let res = await response.json();
-        return res;
-    }
-
-    async register(name, email, password) {
-        return Auth.postTemplate('/register', {name, email, password});
-    }
-
-    async resetPassword(email) {
-        return Auth.postTemplate('/reset', {email});
-    }
-
-    async changePassword(userId, password, token) {
-        return Auth.postTemplate('/password', {userId, password, token});
-    }
-}
-
-class formValidator {
-    constructor() {
-        this.result = [];
-    }
-
-    checkFields(obj) {
-        this.result = [];
-
-        for (let name in obj) {
-            let val = obj[name];
-            // if we check a lot of field with one type
-            if (Array.isArray(val)) {
-                let arr = val;
-
-                arr.forEach(item => {
-                    this.result.push(this[name](item));
-                })
-
-            } else {
-                // if we check one field with this type
-                this.result.push(this[name](val));
-            }
-        }
-
-        return this.checkResult();
-    }
-
-    checkResult() {
-        let i = 0;
-        this.result.forEach(item => {
-            if (item) i++;
-        });
-
-        if (i === this.result.length) {
-            return true;
-        }
-        return false;
-    }
-
-    text(elem) {
-        let value = elem.value;
-        if (value.length === 0) {
-            this.showValidateError(elem, 'This field must be fill!');
-            return false;
-        } else if (value.length < 3) {
-            this.showValidateError(elem, 'Name should have at least 3 characters!');
-            return false;
-        }
-        this.removeValidateError(elem);
-        return true;
-    }
-
-    email(elem) {
-        let value = elem.value;
-        let regExp = new RegExp('[-.\\w]+@([\\w-]+\\.)+[\\w-]', 'g');
-        let res = value.match(regExp);
-        if (value.length === 0) {
-            this.showValidateError(elem, 'This field must be fill!');
-            return false;
-        } else if (!res) {
-            this.showValidateError(elem, 'Please type correct email!');
-            return false;
-        }
-        this.removeValidateError(elem);
-        return true;
-    }
-
-    password(elem) {
-        let value = elem.value;
-        if (value.length === 0) {
-            this.showValidateError(elem, 'This field must be fill!');
-            return false;
-        } else if (value.length < 6) {
-            this.showValidateError(elem, 'Password should have at least 6 characters!');
-            return false;
-        }
-        this.removeValidateError(elem);
-        return true;
-    }
-
-    showValidateError(elem, message) {
-        // delete old error message
-        this.removeValidateError(elem);
-
-        // add new error message
-        let formGroup = elem.closest('.form-group');
-        let span = document.createElement('span');
-
-        elem.style.borderColor = '#e2591b';
-        span.className = 'validate-error';
-        span.textContent = message;
-        span.style.cssText = `
-             position: absolute;
-             top: 100%;
-             left: 0;
-             color: #ff9900;
-             font-size: 13px;
-             font-style: italic;
-             line-height: 1.4em;
-             z-index: 101;
-            `;
-
-        formGroup.appendChild(span);
-    }
-
-    removeValidateError(elem) {
-        let validateErrorElem = elem.closest('.form-group').querySelector('.validate-error');
-        if (!validateErrorElem) return;
-        elem.style.borderColor = '#caff00';
-        validateErrorElem.remove();
-    }
-}
-
 // Init classes
 const http = new Http();
 const db = new DB();
-const ui = new UI('.row.news-container');
+const ui = new UI();
 const auth = new Auth();
 const validateForm = new formValidator();
 
@@ -1366,7 +1149,7 @@ async function resetPassword(e) {
     const resetForm = document.querySelector('#reset-form');
     const email = resetForm.email;
 
-    if (!validateForm.checkFields({email: email})) return;
+    if(!validateForm.checkFields({email: email})) return;
 
     const res = await auth.resetPassword(email.value);
 
@@ -1392,7 +1175,7 @@ async function changePassword(e) {
     const userId = resetPasswordForm.querySelector('.btn.btn-primary').dataset.userId;
     const token = resetPasswordForm.querySelector('.btn.btn-primary').dataset.token;
 
-    if (!validateForm.checkFields({password: password})) return;
+    if(!validateForm.checkFields({password: password})) return;
 
     const res = await auth.changePassword(userId, password.value, token);
 
@@ -1466,7 +1249,7 @@ function showImages(e) {
                 };
             });
 
-            let id = setInterval(changeImages, 2000);
+            let id = setInterval(changeImages, 2200);
 
             window.addEventListener("unload", function () {
                 clearInterval(id);
@@ -1509,3 +1292,5 @@ function togglePassword(e) {
         input.type = "password";
     }
 }
+
+// add readme md file
